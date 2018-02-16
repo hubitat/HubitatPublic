@@ -75,6 +75,8 @@ def initialize() {
     subscribe(omniSensors, "motion", omniDeviceEvent)
     subscribe(omniSensors, "water", omniDeviceEvent)
     subscribe(omniSensors, "smoke", omniDeviceEvent)
+	subscribe(omniSensors, "humidity", omniDeviceEvent)
+	subscribe(omniSensors, "carbonDioxide", omniDeviceEvent)
     subscribe(switchDevices, "switch", handleDeviceEvent)
     subscribe(dimmerDevices, "switch", handleDeviceEvent)
     subscribe(dimmerDevices, "level", handleDeviceEvent)
