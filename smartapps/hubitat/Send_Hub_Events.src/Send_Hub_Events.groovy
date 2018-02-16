@@ -7,14 +7,14 @@
  *
  */
 definition(
-    name: "Send Hub Events",
-    namespace: "hubitat",
-    author: "Charles Schwer, Mike Maxwell and Bruce Ravenel",
-    description: "Send events to another hub",
-    category: "Convenience",
-    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-    iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png"
+	name: "Send Hub Events",
+	namespace: "hubitat",
+	author: "Charles Schwer, Mike Maxwell and Bruce Ravenel",
+	description: "Send events to another hub",
+	category: "Convenience",
+	iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
+	iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
+	iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png"
 )
 
 preferences {
@@ -22,19 +22,18 @@ preferences {
 }
 
 def main(){
-	return (
     	dynamicPage(name: "main", title: "Send Hub Events", uninstall: true, install: true){
       		section("Monitor these devices...") {
-            	input "presenceDevices", "capability.presenceSensor", title: "Presence Devices", multiple: true, required: false
-            	input "motionDevices", "capability.motionSensor", title: "Motion Sensors (motion, temperature)", multiple: true, required: false
-            	input "contactDevices", "capability.contactSensor", title: "Contact Sensors", multiple: true, required: false
-            	input "accelerationDevices", "capability.accelerationSensor", title: "Acceleration Sensors", multiple: true, required: false
-                input "multiSensors", "capability.contactSensor", title: "Multi Sensors (contact, acceleration, temperature)", multiple: true, required: false
-                input "omniSensors", "capability.sensor", title: "Omni Sensors (presence, contact, acceleration, temperature, carbonMonoxide, illuminance, motion, water, smoke)", multiple: true, required: false
-            	input "switchDevices", "capability.switch", title: "Switches", multiple: true, required: false
-                input "dimmerDevices", "capability.switchLevel", title: "Dimmers", multiple: true, required: false
-                input "logEnable", "bool", title: "Enable debug logging", required: false
-			}
+            		input "presenceDevices", "capability.presenceSensor", title: "Presence Devices", multiple: true, required: false
+            		input "motionDevices", "capability.motionSensor", title: "Motion Sensors (motion, temperature)", multiple: true, required: false
+            		input "contactDevices", "capability.contactSensor", title: "Contact Sensors", multiple: true, required: false
+            		input "accelerationDevices", "capability.accelerationSensor", title: "Acceleration Sensors", multiple: true, required: false
+                	input "multiSensors", "capability.contactSensor", title: "Multi Sensors (contact, acceleration, temperature)", multiple: true, required: false
+                	input "omniSensors", "capability.sensor", title: "Omni Sensors (presence, contact, acceleration, temperature, carbonMonoxide, illuminance, motion, water, smoke)", multiple: true, required: false
+            		input "switchDevices", "capability.switch", title: "Switches", multiple: true, required: false
+                	input "dimmerDevices", "capability.switchLevel", title: "Dimmers", multiple: true, required: false
+                	input "logEnable", "bool", title: "Enable debug logging", required: false
+		}
     		section(" ") {
     			input "enabled", "bool", title: "Enable Hub Link?", required: false
     		}
@@ -42,8 +41,7 @@ def main(){
     			input "ip", "text", title:"Hubitat Hub IP", required: true
         		input "port", "text", title:"Port", defaultValue: "39501", required: false
     		}
-        }
-    )
+	}
 }
 
 def installed() {
@@ -58,29 +56,29 @@ def updated() {
 
 
 def initialize() {
-    subscribe(presenceDevices, "presence", handleDeviceEvent)
-    subscribe(motionDevices, "motion", handleDeviceEvent)
-    subscribe(motionDevices, "temperature", handleDeviceEvent)
-    subscribe(contactDevices, "contact", handleDeviceEvent)
-    subscribe(accelerationDevices, "acceleration", handleDeviceEvent)
-    subscribe(multiSensors, "contact", handleDeviceEvent)
-    subscribe(multiSensors, "acceleration", handleDeviceEvent)
-    subscribe(multiSensors, "temperature", handleDeviceEvent)
-    subscribe(omniSensors, "presence", omniDeviceEvent)
-    subscribe(omniSensors, "contact", omniDeviceEvent)
-    subscribe(omniSensors, "acceleration", omniDeviceEvent)
-    subscribe(omniSensors, "temperature", omniDeviceEvent)
-    subscribe(omniSensors, "carbonMonoxide", omniDeviceEvent)
-    subscribe(omniSensors, "illuminance", omniDeviceEvent)
-    subscribe(omniSensors, "motion", omniDeviceEvent)
-    subscribe(omniSensors, "water", omniDeviceEvent)
-    subscribe(omniSensors, "smoke", omniDeviceEvent)
+	subscribe(presenceDevices, "presence", handleDeviceEvent)
+	subscribe(motionDevices, "motion", handleDeviceEvent)
+	subscribe(motionDevices, "temperature", handleDeviceEvent)
+	subscribe(contactDevices, "contact", handleDeviceEvent)
+	subscribe(accelerationDevices, "acceleration", handleDeviceEvent)
+	subscribe(multiSensors, "contact", handleDeviceEvent)
+	subscribe(multiSensors, "acceleration", handleDeviceEvent)
+	subscribe(multiSensors, "temperature", handleDeviceEvent)
+	subscribe(omniSensors, "presence", omniDeviceEvent)
+	subscribe(omniSensors, "contact", omniDeviceEvent)
+	subscribe(omniSensors, "acceleration", omniDeviceEvent)
+	subscribe(omniSensors, "temperature", omniDeviceEvent)
+	subscribe(omniSensors, "carbonMonoxide", omniDeviceEvent)
+	subscribe(omniSensors, "illuminance", omniDeviceEvent)
+	subscribe(omniSensors, "motion", omniDeviceEvent)
+	subscribe(omniSensors, "water", omniDeviceEvent)
+	subscribe(omniSensors, "smoke", omniDeviceEvent)
 	subscribe(omniSensors, "humidity", omniDeviceEvent)
 	subscribe(omniSensors, "carbonDioxide", omniDeviceEvent)
-    subscribe(switchDevices, "switch", handleDeviceEvent)
-    subscribe(dimmerDevices, "switch", handleDeviceEvent)
-    subscribe(dimmerDevices, "level", handleDeviceEvent)
-    sendSetup()
+	subscribe(switchDevices, "switch", handleDeviceEvent)
+	subscribe(dimmerDevices, "switch", handleDeviceEvent)
+	subscribe(dimmerDevices, "level", handleDeviceEvent)
+	sendSetup()
 }
 
 def handleDeviceEvent(evt) {
@@ -96,7 +94,7 @@ ${evt.value}
 	if(enabled) {
 		if (logEnable) log.debug "Name: ${evt.device.displayName}, DNI: ${dni}, value: ${evt.value}"
 		sendHubCommand(new physicalgraph.device.HubAction(msg, physicalgraph.device.Protocol.LAN, "${ip}:${port}"))
-    }
+	}
 }
 
 def omniDeviceEvent(evt) {
@@ -112,7 +110,7 @@ ${evt.name}:${evt.value}
 	if(enabled) {
         if (logEnable) log.debug "Name: ${evt.device.displayName}, DNI: ${dni}, name: ${evt.name} value: ${evt.value}"
 		sendHubCommand(new physicalgraph.device.HubAction(msg, physicalgraph.device.Protocol.LAN, "${ip}:${port}"))
-    }
+	}
 }
 
 def sendSetup() {
