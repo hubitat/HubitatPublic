@@ -1,147 +1,165 @@
-/*
- *  Copyright 2017, 2018 Hubitat, Inc.  All Rights Reserved.
- *
- *  This software if free for Private Use. You may use and modify the software without distributing it.
- *  You may not grant a sublicense to modify and distribute this software to third parties.
- *  Software is provided without warranty and your use of it is at your own risk.
- *
- */
 definition(
-    name: "Send Hub Events",
-    namespace: "hubitat",
-    author: "Charles Schwer, Mike Maxwell and Bruce Ravenel",
-    description: "Send events to another hub",
-    category: "Convenience",
-    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-    iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png"
-)
+    name		: "RemindR",
+    namespace	: "Echo",
+    author		: "JH/BD",
+    description	: "Never miss an important event",
+    category	: "My Apps",
+	iconUrl			: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/app-RemindR.png",
+	iconX2Url		: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/app-RemindR@2x.png",
+	iconX3Url		: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/app-RemindR@2x.png")
+
+/**********************************************************************************************************************************************/
+private def textVersion() {
+	def text = "1.0"
+}
+private release() {
+    def text = "R.0.0.10b"
+}
+/**********************************************************************************************************************************************/
 
 preferences {
 	page(name: "main")
+    page(name: "profiles")
+    page(name: "advanced")
 }
+		page name: "main"
+            def main() {
+                dynamicPage (name: "main", title: "Reminders and Notifications (${childApps?.size()})", install: true, uninstall: true) {
+                    if (childApps?.size()) {  
+                        section("Reminders",  uninstall: false){
+                            app(name: "profiles", appName: "RemindRProfiles", namespace: "Echo", title: "Create a new Reminder", multiple: true,  uninstall: false)
+                        }
+                    }
+                    else {
+                        section("Reminders",  uninstall: false){
+                            paragraph "NOTE: Looks like you haven't created any reminders yet.\n \nPlease make sure you have installed the Echo : RemindRProfile app before creating your first reminder!"
+                            app(name: "profiles", appName: "RemindRProfiles", namespace: "Echo", title: "Create a new Reminder", multiple: true,  uninstall: false)
+                        }
+                    }
+					if (state.activeRetrigger) {
+                    	section("Active Retrigger"){
+                        	paragraph ("${state.activeRetrigger}")
+						}
+                    }
+                    section("Settings",  uninstall: false, hideable: true, hidden: true){
+						input "debug", "bool", title: "Enable Debug Logging", default: true, submitOnChange: true
+            			input "wZipCode", "text", title: "Zip Code (If Location Not Set)", required: "false"
+                        paragraph ("Version: ${textVersion()} | Release: ${release()}")
+					}
 
-def main(){
-	return (
-    	dynamicPage(name: "main", title: "Send Hub Events", uninstall: true, install: true){
-      		section("Monitor these devices...") {
-            	input "presenceDevices", "capability.presenceSensor", title: "Presence Devices", multiple: true, required: false
-            	input "motionDevices", "capability.motionSensor", title: "Motion Sensors (motion, temperature)", multiple: true, required: false
-            	input "contactDevices", "capability.contactSensor", title: "Contact Sensors", multiple: true, required: false
-            	input "accelerationDevices", "capability.accelerationSensor", title: "Acceleration Sensors", multiple: true, required: false
-                input "multiSensors", "capability.contactSensor", title: "Multi Sensors (contact, acceleration, temperature)", multiple: true, required: false
-                input "omniSensors", "capability.sensor", title: "Omni Sensors (presence, contact, acceleration, temperature, carbonMonoxide, illuminance, motion, water, smoke)", multiple: true, required: false
-            	input "switchDevices", "capability.switch", title: "Switches", multiple: true, required: false
-                input "dimmerDevices", "capability.switchLevel", title: "Dimmers", multiple: true, required: false
-                input "logEnable", "bool", title: "Enable debug logging", required: false
-			}
-    		section(" ") {
-    			input "enabled", "bool", title: "Enable Hub Link?", required: false
-    		}
-    		section ("Device to push data to") {
-    			input "ip", "text", title:"Hubitat Hub IP", required: true
-        		input "port", "text", title:"Port", defaultValue: "39501", required: false
-    		}
-        }
-    )
-}
-
+             	}
+	        }       
+/************************************************************************************************************
+		Base Process
+************************************************************************************************************/
 def installed() {
-	initialize()
+	if (debug) log.debug "Installed with settings: ${settings}"
+    state.ParentRelease = release()
+    initialize()
 }
-
-
-def updated() {
-	unsubscribe()
-	initialize()
+def updated() { 
+	if (debug) log.debug "Updated with settings: ${settings}"
+    unsubscribe()
+    initialize()
 }
-
-
 def initialize() {
-    subscribe(presenceDevices, "presence", handleDeviceEvent)
-    subscribe(motionDevices, "motion", handleDeviceEvent)
-    subscribe(motionDevices, "temperature", handleDeviceEvent)
-    subscribe(contactDevices, "contact", handleDeviceEvent)
-    subscribe(accelerationDevices, "acceleration", handleDeviceEvent)
-    subscribe(multiSensors, "contact", handleDeviceEvent)
-    subscribe(multiSensors, "acceleration", handleDeviceEvent)
-    subscribe(multiSensors, "temperature", handleDeviceEvent)
-    subscribe(omniSensors, "presence", omniDeviceEvent)
-    subscribe(omniSensors, "contact", omniDeviceEvent)
-    subscribe(omniSensors, "acceleration", omniDeviceEvent)
-    subscribe(omniSensors, "temperature", omniDeviceEvent)
-    subscribe(omniSensors, "carbonMonoxide", omniDeviceEvent)
-    subscribe(omniSensors, "illuminance", omniDeviceEvent)
-    subscribe(omniSensors, "motion", omniDeviceEvent)
-    subscribe(omniSensors, "water", omniDeviceEvent)
-    subscribe(omniSensors, "smoke", omniDeviceEvent)
-    subscribe(switchDevices, "switch", handleDeviceEvent)
-    subscribe(dimmerDevices, "switch", handleDeviceEvent)
-    subscribe(dimmerDevices, "level", handleDeviceEvent)
-    sendSetup()
+		subscribe(app, appHandler)
+        webCoRE_init()
+        subscribe(location, "askAlexaMQ", askAlexaMQHandler)
+        //Other Apps Events
+        state.esEvent = [:]
+        state.activeRetrigger
+        subscribe(location, "echoSistant", echoSistantHandler)
+		state.esProfiles = state.esProfiles ? state.esProfiles : []
+        //CoRE and other 3rd party apps
+        sendLocationEvent(name: "remindR", value: "refresh", data: [profiles: getProfileList()] , isStateChange: true, descriptionText: "RemindR list refresh")
+		sendLocationEvent(name: "echoSistant", value: "refresh", data: [profiles: getProfileList()] , isStateChange: true, descriptionText: "RemindR list refresh")
+        //def children = getChildApps()
 }
+/************************************************************************************************************
+		3RD Party Integrations
+************************************************************************************************************/
+private webCoRE_handle(){return'webCoRE'}
+private webCoRE_init(pistonExecutedCbk){state.webCoRE=(state.webCoRE instanceof Map?state.webCoRE:[:])+(pistonExecutedCbk?[cbk:pistonExecutedCbk]:[:]);subscribe(location,"${webCoRE_handle()}.pistonList",webCoRE_handler);if(pistonExecutedCbk)subscribe(location,"${webCoRE_handle()}.pistonExecuted",webCoRE_handler);webCoRE_poll();}
+private webCoRE_poll(){sendLocationEvent([name: webCoRE_handle(),value:'poll',isStateChange:true,displayed:false])}
+public  webCoRE_execute(pistonIdOrName,Map data=[:]){def i=(state.webCoRE?.pistons?:[]).find{(it.name==pistonIdOrName)||(it.id==pistonIdOrName)}?.id;if(i){sendLocationEvent([name:i,value:app.label,isStateChange:true,displayed:false,data:data])}}
+public  webCoRE_list(mode){def p=state.webCoRE?.pistons;if(p)p.collect{mode=='id'?it.id:(mode=='name'?it.name:[id:it.id,name:it.name])}}
+public  webCoRE_handler(evt){switch(evt.value){case 'pistonList':List p=state.webCoRE?.pistons?:[];Map d=evt.jsonData?:[:];if(d.id&&d.pistons&&(d.pistons instanceof List)){p.removeAll{it.iid==d.id};p+=d.pistons.collect{[iid:d.id]+it}.sort{it.name};state.webCoRE = [updated:now(),pistons:p];};break;case 'pistonExecuted':def cbk=state.webCoRE?.cbk;if(cbk&&evt.jsonData)"$cbk"(evt.jsonData);break;}}
 
-def handleDeviceEvent(evt) {
-def dni = "stHub_${evt?.device?.deviceNetworkId}"
-def msg = """POST / HTTP/1.1
-HOST: ${ip}:${port}
-CONTENT-TYPE: text/plain
-DEVICE-NETWORK-ID: ${dni}
-CONTENT-LENGTH: ${evt.value.length()}
-
-${evt.value}
-"""
-	if(enabled) {
-		if (logEnable) log.debug "Name: ${evt.device.displayName}, DNI: ${dni}, value: ${evt.value}"
-		sendHubCommand(new physicalgraph.device.HubAction(msg, physicalgraph.device.Protocol.LAN, "${ip}:${port}"))
+def echoSistantHandler(evt) {
+	def result
+	if (!evt) return
+    log.warn "received event from EchoSistant with data: $evt.data"
+	switch (evt.value) {
+		case "refresh":
+		state.esProfiles = evt.jsonData && evt.jsonData?.profiles ? evt.jsonData.profiles : []
+			break
+		case "runReport":
+			def profile = evt.jsonData
+            	result = runReport(profile)
+            break	
     }
+    return result
+}
+def listEchoSistantProfiles() {
+log.warn "child requesting esProfiles"
+	return state.esProfiles = state.esProfiles ? state.esProfiles : []
 }
 
-def omniDeviceEvent(evt) {
-def dni = "stHub_${evt?.device?.deviceNetworkId}"
-def msg = """POST / HTTP/1.1
-HOST: ${ip}:${port}
-CONTENT-TYPE: text/plain
-DEVICE-NETWORK-ID: ${dni}
-CONTENT-LENGTH: ${(evt.name.length() + evt.value.length() + 1)}
-
-${evt.name}:${evt.value}
-"""
-	if(enabled) {
-        if (logEnable) log.debug "Name: ${evt.device.displayName}, DNI: ${dni}, name: ${evt.name} value: ${evt.value}"
-		sendHubCommand(new physicalgraph.device.HubAction(msg, physicalgraph.device.Protocol.LAN, "${ip}:${port}"))
-    }
+def getProfileList(){
+		return getChildApps()*.label
+}
+def childUninstalled() {
+	if (debug) log.debug "Refreshing Profiles for 3rd party apps, ${getChildApps()*.label}"
+    sendLocationEvent(name: "remindR", value: "refresh", data: [profiles: getProfileList()] , isStateChange: true, descriptionText: "RemindR list refresh")
+} 
+def childInitialized(message) {
+	state.activeRetrigger = message
 }
 
-def sendSetup() {
-    def thisMsg = ""
-    presenceDevices.each {thisMsg = thisMsg + "p:$it.displayName:stHub_$it.deviceNetworkId\n"}
-    motionDevices.each {thisMsg = thisMsg + "m:$it.displayName:stHub_$it.deviceNetworkId\n"}
-    contactDevices.each {thisMsg = thisMsg + "c:$it.displayName:stHub_$it.deviceNetworkId\n"}
-    accelerationDevices.each {thisMsg = thisMsg + "a:$it.displayName:stHub_$it.deviceNetworkId\n"}
-    multiSensors.each {thisMsg = thisMsg + "x:$it.displayName:stHub_$it.deviceNetworkId\n"}
-    omniSensors.each {thisMsg = thisMsg + "o:$it.displayName:stHub_$it.deviceNetworkId\n"}
-    switchDevices.each {thisMsg = thisMsg + "s:$it.displayName:stHub_$it.deviceNetworkId\n"}
-    dimmerDevices.each {thisMsg = thisMsg + "d:$it.displayName:stHub_$it.deviceNetworkId\n"}
-    def dni = "systemHubLink"    
-def msg = """POST / HTTP/1.1
-HOST: ${ip}:${port}
-CONTENT-TYPE: text/plain
-DEVICE-NETWORK-ID: ${dni}
-CONTENT-LENGTH: ${thisMsg.length()}
-
-${thisMsg}
-"""
-    if(enabled) {
-    	if (logEnable) log.debug "Setup: $msg"
-		sendHubCommand(new physicalgraph.device.HubAction(msg, physicalgraph.device.Protocol.LAN, "${ip}:${port}"))
-	}    
+def askAlexaMQHandler(evt) {
+   if (!evt) return
+      switch (evt.value) {
+         case "refresh":
+            state.askAlexaMQ = evt.jsonData && evt.jsonData?.queues ? evt.jsonData.queues : []
+            break
+      }
 }
-
-def uninstalled() {
-	removeChildDevices(getChildDevices())
+def listaskAlexaMQHandler() {
+log.warn "child requesting askAlexa Message Queues"
+	return state.askAlexaMQ
 }
-
-private removeChildDevices(delete) {
-	delete.each {deleteChildDevice(it.deviceNetworkId)}
+/***********************************************************************************************************************
+    RUN ADHOC REPORT
+***********************************************************************************************************************/
+def runReport(profile) {
+def result
+           		childApps.each {child ->
+                        def ch = child.label
+                		if (ch == profile) { 
+                    		if (debug) log.debug "Found a profile, $profile"
+                            result = child.runProfile(ch)
+						}
+            	}
+                return result
+}
+/***********************************************************************************************************************
+    CANCEL RETRIGGER
+***********************************************************************************************************************/
+def cancelRetrigger() {
+def result
+           		childApps.each {child ->
+                        def ch = child.label
+                		def chMessage = child.retriveMessage()
+                        if (chMessage == state.activeRetrigger) { 
+                    		if (debug) log.debug "Found a profile for the retrigger = $ch"
+                            result = child.cancelRetrigger()
+						}
+            	}
+                //return result
+                log.warn "retrigger cancelation was $result"
+}
+def appHandler(evt) {
+    cancelRetrigger()
+    log.debug "app event ${evt.name}:${evt.value} received"
 }
