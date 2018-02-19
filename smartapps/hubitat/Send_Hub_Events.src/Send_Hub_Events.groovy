@@ -39,7 +39,6 @@ def main(){
     		}
     		section ("Device to push data to") {
     			input "ip", "text", title:"Hubitat Hub IP", required: true
-        		input "port", "text", title:"Port", defaultValue: "39501", required: false
     		}
 	}
 }
@@ -93,7 +92,7 @@ ${evt.value}
 """
 	if(enabled) {
 		if (logEnable) log.debug "Name: ${evt.device.displayName}, DNI: ${dni}, value: ${evt.value}"
-		sendHubCommand(new physicalgraph.device.HubAction(msg, physicalgraph.device.Protocol.LAN, "${ip}:${port}"))
+		sendHubCommand(new physicalgraph.device.HubAction(msg, physicalgraph.device.Protocol.LAN, "${ip}:39501"))
 	}
 }
 
@@ -109,7 +108,7 @@ ${evt.name}:${evt.value}
 """
 	if(enabled) {
         if (logEnable) log.debug "Name: ${evt.device.displayName}, DNI: ${dni}, name: ${evt.name} value: ${evt.value}"
-		sendHubCommand(new physicalgraph.device.HubAction(msg, physicalgraph.device.Protocol.LAN, "${ip}:${port}"))
+		sendHubCommand(new physicalgraph.device.HubAction(msg, physicalgraph.device.Protocol.LAN, "${ip}:39501"))
 	}
 }
 
@@ -134,7 +133,7 @@ ${thisMsg}
 """
     if(enabled) {
     	if (logEnable) log.debug "Setup: $msg"
-		sendHubCommand(new physicalgraph.device.HubAction(msg, physicalgraph.device.Protocol.LAN, "${ip}:${port}"))
+		sendHubCommand(new physicalgraph.device.HubAction(msg, physicalgraph.device.Protocol.LAN, "${ip}:39501"))
 	}    
 }
 
