@@ -114,14 +114,14 @@ ${evt.name}:${evt.value}
 
 def sendSetup() {
     def thisMsg = ""
-    presenceDevices.each {thisMsg = thisMsg + "p;$it.displayName;stHub_$it.deviceNetworkId.replace\n"}
-    motionDevices.each {thisMsg = thisMsg + "m;$it.displayName;stHub_$it.deviceNetworkId\n"}
-    contactDevices.each {thisMsg = thisMsg + "c;$it.displayName;stHub_$it.deviceNetworkId\n"}
-    accelerationDevices.each {thisMsg = thisMsg + "a;$it.displayName;stHub_$it.deviceNetworkId\n"}
-    multiSensors.each {thisMsg = thisMsg + "x;$it.displayName;stHub_$it.deviceNetworkId\n"}
-    omniSensors.each {thisMsg = thisMsg + "o;$it.displayName;stHub_$it.deviceNetworkId\n"}
-    switchDevices.each {thisMsg = thisMsg + "s;$it.displayName;stHub_$it.deviceNetworkId\n"}
-    dimmerDevices.each {thisMsg = thisMsg + "d;$it.displayName;stHub_$it.deviceNetworkId\n"}
+    presenceDevices.each {thisMsg = thisMsg + "p\\$it.displayName\\stHub_$it.deviceNetworkId.replace\n"}
+    motionDevices.each {thisMsg = thisMsg + "m\\$it.displayName\\stHub_$it.deviceNetworkId\n"}
+    contactDevices.each {thisMsg = thisMsg + "c\\$it.displayName\\stHub_$it.deviceNetworkId\n"}
+    accelerationDevices.each {thisMsg = thisMsg + "a\\$it.displayName\\stHub_$it.deviceNetworkId\n"}
+    multiSensors.each {thisMsg = thisMsg + "x\\$it.displayName\\stHub_$it.deviceNetworkId\n"}
+    omniSensors.each {thisMsg = thisMsg + "o\\$it.displayName\\stHub_$it.deviceNetworkId\n"}
+    switchDevices.each {thisMsg = thisMsg + "s\\$it.displayName\\stHub_$it.deviceNetworkId\n"}
+    dimmerDevices.each {thisMsg = thisMsg + "d\\$it.displayName\\stHub_$it.deviceNetworkId\n"}
     def dni = "systemHubLink"    
 def msg = """POST / HTTP/1.1
 HOST: ${ip}:${port}
