@@ -83,7 +83,7 @@ def initialize() {
 def handleDeviceEvent(evt) {
 def dni = "stHub_${evt?.device?.deviceNetworkId}"
 def msg = """POST / HTTP/1.1
-HOST: ${ip}:${port}
+HOST: ${ip}:39501
 CONTENT-TYPE: text/plain
 DEVICE-NETWORK-ID: ${dni}
 CONTENT-LENGTH: ${evt.value.length()}
@@ -99,7 +99,7 @@ ${evt.value}
 def omniDeviceEvent(evt) {
 def dni = "stHub_${evt?.device?.deviceNetworkId}"
 def msg = """POST / HTTP/1.1
-HOST: ${ip}:${port}
+HOST: ${ip}:39501
 CONTENT-TYPE: text/plain
 DEVICE-NETWORK-ID: ${dni}
 CONTENT-LENGTH: ${(evt.name.length() + evt.value.length() + 1)}
@@ -124,7 +124,7 @@ def sendSetup() {
     dimmerDevices.each {thisMsg = thisMsg + "d\\$it.displayName\\stHub_$it.deviceNetworkId\n"}
     def dni = "systemHubLink"    
 def msg = """POST / HTTP/1.1
-HOST: ${ip}:${port}
+HOST: ${ip}:39501
 CONTENT-TYPE: text/plain
 DEVICE-NETWORK-ID: ${dni}
 CONTENT-LENGTH: ${thisMsg.length()}
