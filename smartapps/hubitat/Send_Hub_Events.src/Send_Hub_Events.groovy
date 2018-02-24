@@ -26,7 +26,7 @@ def main(){
     		section ("Hubitat™ Elevation Hub IP") {
     			input "ip", "text", title:"Hubitat™ Elevation Hub IP", required: true
     		}
-    		section(" ") {
+    		section {
     			input "enabled", "bool", title: "Enable Hub Link?", required: false
     		}
       		section("Monitor these devices...") {
