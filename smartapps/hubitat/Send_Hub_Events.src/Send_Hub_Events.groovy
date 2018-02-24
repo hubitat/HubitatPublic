@@ -10,7 +10,7 @@ definition(
 	name: "Send Hub Events",
 	namespace: "hubitat",
 	author: "Charles Schwer, Mike Maxwell and Bruce Ravenel",
-	description: "Send events to another hub",
+	description: "Send events to Hubitat™ Elevation Hub",
 	category: "Convenience",
 	iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
 	iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
