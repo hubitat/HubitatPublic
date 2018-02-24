@@ -23,6 +23,12 @@ preferences {
 
 def main(){
     	dynamicPage(name: "main", title: "Send Hub Events", uninstall: true, install: true){
+    		section ("Hubitat™ Elevation Hub IP") {
+    			input "ip", "text", title:"Hubitat™ Elevation Hub IP", required: true
+    		}
+    		section(" ") {
+    			input "enabled", "bool", title: "Enable Hub Link?", required: false
+    		}
       		section("Monitor these devices...") {
             		input "presenceDevices", "capability.presenceSensor", title: "Presence Devices", multiple: true, required: false
             		input "motionDevices", "capability.motionSensor", title: "Motion Sensors (motion, temperature)", multiple: true, required: false
@@ -34,12 +40,6 @@ def main(){
                 	input "dimmerDevices", "capability.switchLevel", title: "Dimmers", multiple: true, required: false
                 	input "logEnable", "bool", title: "Enable debug logging", required: false
 		}
-    		section(" ") {
-    			input "enabled", "bool", title: "Enable Hub Link?", required: false
-    		}
-    		section ("Device to push data to") {
-    			input "ip", "text", title:"Hubitat Hub IP", required: true
-    		}
 	}
 }
 
