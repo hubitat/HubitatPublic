@@ -114,7 +114,7 @@ ${evt.name}:${evt.value}
 
 def sendSetup() {
     def thisMsg = ""
-    presenceDevices.each {thisMsg = thisMsg + "p\t$it.displayName\tstHub_$it.deviceNetworkId.replace\n"}
+    presenceDevices.each {thisMsg = thisMsg + "p\t$it.displayName\tstHub_$it.deviceNetworkId\n"}
     motionDevices.each {thisMsg = thisMsg + "m\t$it.displayName\tstHub_$it.deviceNetworkId\n"}
     contactDevices.each {thisMsg = thisMsg + "c\t$it.displayName\tstHub_$it.deviceNetworkId\n"}
     accelerationDevices.each {thisMsg = thisMsg + "a\t$it.displayName\tstHub_$it.deviceNetworkId\n"}
