@@ -27,7 +27,7 @@ def main(){
     			input "ip", "text", title:"Hubitat™ Elevation Hub IP", required: true
     		}
     		section {
-    			input "enabled", "bool", title: "Enable Hub Link?", required: false
+    			input "enabled", "bool", title: "Enable Hub Link?", required: false, defaultValue: true
     		}
       		section("Monitor these devices...") {
             		input "presenceDevices", "capability.presenceSensor", title: "Presence Devices", multiple: true, required: false
