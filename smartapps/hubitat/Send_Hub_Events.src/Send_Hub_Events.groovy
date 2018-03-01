@@ -38,6 +38,7 @@ def main(){
                 	input "omniSensors", "capability.sensor", title: "Omni Sensors (presence, contact, acceleration, temperature, carbonMonoxide, illuminance, motion, water, smoke)", multiple: true, required: false
             		input "switchDevices", "capability.switch", title: "Switches", multiple: true, required: false
                 	input "dimmerDevices", "capability.switchLevel", title: "Dimmers", multiple: true, required: false
+			input "locks", "capability.lock", title: "Locks", multiple: true, required: false
                 	input "logEnable", "bool", title: "Enable debug logging", required: false
 		}
 	}
@@ -77,6 +78,7 @@ def initialize() {
 	subscribe(switchDevices, "switch", handleDeviceEvent)
 	subscribe(dimmerDevices, "switch", handleDeviceEvent)
 	subscribe(dimmerDevices, "level", handleDeviceEvent)
+	subscribe(locks, "lock", handleDeviceEvent)
 	sendSetup()
 }
 
@@ -122,6 +124,7 @@ def sendSetup() {
     omniSensors.each {thisMsg = thisMsg + "o\t$it.displayName\tstHub_$it.deviceNetworkId\n"}
     switchDevices.each {thisMsg = thisMsg + "s\t$it.displayName\tstHub_$it.deviceNetworkId\n"}
     dimmerDevices.each {thisMsg = thisMsg + "d\t$it.displayName\tstHub_$it.deviceNetworkId\n"}
+	locks.each {thisMsg = thisMsg + "l\t$it.displayName\tstHub_$it.deviceNetworkId\n"}
     def dni = "systemHubLink"    
 def msg = """POST / HTTP/1.1
 HOST: ${ip}:39501
