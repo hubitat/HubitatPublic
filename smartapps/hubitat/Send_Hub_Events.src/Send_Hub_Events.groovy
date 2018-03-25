@@ -39,6 +39,7 @@ def main(){
             		input "switchDevices", "capability.switch", title: "Switches", multiple: true, required: false
                 	input "dimmerDevices", "capability.switchLevel", title: "Dimmers", multiple: true, required: false
 			input "locks", "capability.lock", title: "Locks", multiple: true, required: false
+			input "modes", "bool", title: "Send mode changes?", required: false
                 	input "logEnable", "bool", title: "Enable debug logging", required: false
 		}
 	}
@@ -79,6 +80,7 @@ def initialize() {
 	subscribe(dimmerDevices, "switch", handleDeviceEvent)
 	subscribe(dimmerDevices, "level", handleDeviceEvent)
 	subscribe(locks, "lock", handleDeviceEvent)
+	if(modes) subscribe(location, modeEvent)
 	sendSetup()
 }
 
@@ -140,6 +142,23 @@ ${thisMsg}
 	}    
 }
 
+def modeEvent(evt){
+	if(evt.name != "mode") return
+	def dni = "stHub_mode_"
+	def msg = """POST / HTTP/1.1
+HOST: ${ip}:39501
+CONTENT-TYPE: text/plain
+DEVICE-NETWORK-ID: ${dni}
+CONTENT-LENGTH: ${evt.value.length()}
+
+${evt.value}
+"""
+	if(enabled) {
+		if (logEnable) log.debug "Name: Mode, value: ${evt.value}"
+		sendHubCommand(new physicalgraph.device.HubAction(msg, physicalgraph.device.Protocol.LAN, "${ip}:39501"))
+	}
+}
+	
 def uninstalled() {
 	removeChildDevices(getChildDevices())
 }
