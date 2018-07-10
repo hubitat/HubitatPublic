@@ -46,7 +46,7 @@ def updated() {
     log.warn "description logging is: ${txtEnable == true}"
     log.warn "encryption is: ${optEncrypt == true}"
     //check crnt lockCodes for encryption status
-    updatEncryption()
+    updateEncryption()
     //turn off debug logs after 30 minutes
     if (logEnable) runIn(1800,logsOff)
 }
@@ -237,7 +237,7 @@ private updateLockCodes(lockCodes){
     sendEvent(name:"lockCodes",value:data)
 }
 
-private updatEncryption(){
+private updateEncryption(){
     /*
 	resend lockCodes map when the encryption option is changed
 	*/
