@@ -91,7 +91,7 @@ def setCode(codeNumber, code, name = null) {
     /*
 	on sucess
 		name		value								data												notes
-		codeChanged	set | changed						[<codeNumber>":["code":"<pinCode>", "name":"<display name for code>"]]	default name to code #<codeNumber>
+		codeChanged	added | changed						[<codeNumber>":["code":"<pinCode>", "name":"<display name for code>"]]	default name to code #<codeNumber>
 		lockCodes	JSON list of all lockCode
 	*/
     if (!name) name = "code #${codeNumber}"
