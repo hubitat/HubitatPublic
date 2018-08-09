@@ -28,7 +28,7 @@ metadata {
         capability "Illuminance Measurement"
         capability "PressureMeasurement"
         capability "Sensor"
-		capability "Switch"
+	capability "Switch"
 
         fingerprint profileId: "0104", inClusters: "0000,0003,0006,0402,0403,0405,0400,0B05", manufacturer: "KMPCIL", model: "RES001BME280", deviceJoinName: "Environment Sensor"
 /*
@@ -109,9 +109,9 @@ def parse(String description) {
 			getHumidityResult(hexValue)
 			break
 		case "0B05" : //diag
-        	if (logEnable) log.warn "attrId:${attrId}, hexValue:${hexValue}"
-        	def value = hexStrToUnsignedInt(hexValue)
-        	log.warn "diag- ${diagAttributes."${attrId}".name}:${value} "
+        		if (logEnable) log.warn "attrId:${attrId}, hexValue:${hexValue}"
+        		def value = hexStrToUnsignedInt(hexValue)
+        		log.warn "diag- ${diagAttributes."${attrId}".name}:${value} "
 			break
 		default :
 			log.warn "skipped cluster: ${cluster}, descMap:${descMap}"
@@ -184,7 +184,7 @@ def refresh() {
     log.debug "Refresh"
     
 	//readAttribute(cluster,attribute,mfg code,optional delay ms)
-    def cmds = zigbee.readAttribute(0x0402,0x0000,[:],200) +	//temp
+    def cmds = zigbee.readAttribute(0x0402,0x0000,[:],200) +		//temp
         zigbee.readAttribute(0x0405,0x0000,[:],200) + 			//humidity
         zigbee.readAttribute(0x0403,0x0000,[:],200) +			//pressure
         zigbee.readAttribute(0x0400,0x0000,[:],200) 			//illuminance
