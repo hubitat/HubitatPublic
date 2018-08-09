@@ -21,13 +21,13 @@ import groovy.transform.Field
 
 metadata {
     definition (name: "Environment Sensor", namespace: "iharyadi", author: "iharyadi/maxwell") {
-        capability "Configuration"
-        capability "Refresh"
-        capability "Temperature Measurement"
-        capability "RelativeHumidityMeasurement"
-        capability "Illuminance Measurement"
-        capability "PressureMeasurement"
-        capability "Sensor"
+	capability "Configuration"
+	capability "Refresh"
+	capability "Temperature Measurement"
+	capability "RelativeHumidityMeasurement"
+	capability "Illuminance Measurement"
+	capability "PressureMeasurement"
+	capability "Sensor"
 	capability "Switch"
 
         fingerprint profileId: "0104", inClusters: "0000,0003,0006,0402,0403,0405,0400,0B05", manufacturer: "KMPCIL", model: "RES001BME280", deviceJoinName: "Environment Sensor"
