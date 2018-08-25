@@ -20,7 +20,7 @@ metadata {
     definition (name: "Basic Z-Wave tool",namespace: "hubitat", author: "Mike Maxwell") {
         
     	command "getCommandClassReport"
-	command "getParameterReport", ["NUMBER"]
+	command "getParameterReport", ["NUMBER"] //omit number parameter for a complete listing of parameters that have been set
 	command "setParameter", ["NUMBER","NUMBER","NUMBER"]
     }
 }
