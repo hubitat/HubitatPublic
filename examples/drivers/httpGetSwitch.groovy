@@ -38,20 +38,31 @@ def parse(String description) {
 def on() {
     if (logEnable) log.debug "Sending on GET request to [${settings.onURI}]"
 
-    httpGet(settings.onURI) {resp ->
-        if (resp.data) {
-            if (logEnable) log.debug "${resp.data}"
-        } 
+    try {
+	    httpGet(settings.onURI) {resp ->
+	        if(resp.success) {
+	            sendEvent(name: "switch", value: "on", isStateChange: true) 
+    	    }
+        	if (logEnable)
+        		if (resp.data) log.debug "${resp.data}"
+    	}
+    } catch(Exception e) {
+        log.warn "Call to on failed: ${e.message}"
     }
-    sendEvent(name: "switch", value: "on", isStateChange: true) 
 }
 
 def off() {
     if (logEnable) log.debug "Sending off GET request to [${settings.offURI}]"
-    httpGet(settings.offURI) {resp ->
-        if (resp.data) {
-            if (logEnable) log.debug "${resp.data}"
-        } 
+
+        try {
+	    httpGet(settings.offURI) {resp ->
+	        if(resp.success) {
+	            sendEvent(name: "switch", value: "off", isStateChange: true) 
+    	    }
+        	if (logEnable)
+        		if (resp.data) log.debug "${resp.data}"
+    	}
+    } catch(Exception e) {
+        log.warn "Call to off failed: ${e.message}"
     }
-    sendEvent(name: "switch", value: "off", isStateChange: true)
 }
