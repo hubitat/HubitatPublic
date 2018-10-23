@@ -90,8 +90,7 @@ def msg = """POST / HTTP/1.1
 HOST: ${ip}:39501
 CONTENT-TYPE: text/plain
 DEVICE-NETWORK-ID: ${dni}
-CONTENT-LENGTH: ${evt.value.length()}
-
+CONTENT-LENGTH: ${evt.value.length()}\n
 ${evt.value}
 """
 	if(enabled) {
@@ -106,8 +105,7 @@ def msg = """POST / HTTP/1.1
 HOST: ${ip}:39501
 CONTENT-TYPE: text/plain
 DEVICE-NETWORK-ID: ${dni}
-CONTENT-LENGTH: ${(evt.name.length() + evt.value.length() + 1)}
-
+CONTENT-LENGTH: ${(evt.name.length() + evt.value.length() + 1)}\n
 ${evt.name}:${evt.value}
 """
 	if(enabled) {
@@ -132,8 +130,7 @@ def msg = """POST / HTTP/1.1
 HOST: ${ip}:39501
 CONTENT-TYPE: text/plain
 DEVICE-NETWORK-ID: ${dni}
-CONTENT-LENGTH: ${thisMsg.length()}
-
+CONTENT-LENGTH: ${thisMsg.length()}\n
 ${thisMsg}
 """
     if(enabled) {
@@ -149,8 +146,7 @@ def modeEvent(evt){
 HOST: ${ip}:39501
 CONTENT-TYPE: text/plain
 DEVICE-NETWORK-ID: ${dni}
-CONTENT-LENGTH: ${evt.value.length()}
-
+CONTENT-LENGTH: ${evt.value.length()}\n
 ${evt.value}
 """
 	if(enabled) {
