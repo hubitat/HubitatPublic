@@ -2,10 +2,10 @@
  	Halo Smoke Alarm
 
    Copyright 2016, 2017, 2018, 2019 Hubitat Inc.  All Rights Reserved
-    2019-02-12 2.0.6 maxwell
-        -update enrollResponse with delay
- 	  2018-09-28 maxwell
- 		    -initial pub
+   2019-02-12 2.0.6 maxwell
+       -update enrollResponse with delay
+   2018-09-28 maxwell
+       -initial pub
 
 */
 
