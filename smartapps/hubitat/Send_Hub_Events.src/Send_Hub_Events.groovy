@@ -5,6 +5,8 @@
  *  You may not grant a sublicense to modify and distribute this software to third parties.
  *  Software is provided without warranty and your use of it is at your own risk.
  *
+ *  NOTE: This "App" is for use on the SmartThings platform, it does not work on Hubitat.  It will send
+ *        events from the SmartThings system to Hubitat once it is installed.
  */
 definition(
 	name: "Send Hub Events",
