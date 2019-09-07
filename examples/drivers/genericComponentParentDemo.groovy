@@ -30,7 +30,7 @@ void logsOff(){
     device.updateSetting("logEnable",[value:"false",type:"bool"])
 }
 
-List<String> updated(){
+void updated(){
     log.info "updated..."
     log.warn "debug logging is: ${logEnable == true}"
     log.warn "description logging is: ${txtEnable == true}"
@@ -96,7 +96,6 @@ def fetchChild(String type){
                 defaultValues.add([name:"switch", value:"off", descriptionText:"set initial switch value"])
                 defaultValues.add([name:"level", value:50, descriptionText:"set initial level value", unit:"%"])
                 break
-            //String unit = "°${location.temperatureScale}"
             case "Temperature Sensor" :
                 String unit = "°${location.temperatureScale}"
                 BigInteger value = (unit == "°F") ? 70.0 : 21.0
