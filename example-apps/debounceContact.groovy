@@ -17,7 +17,6 @@ def mainPage() {
 			input "thisName", "text", title: "Name this debouncer; debounce switch will have this name", submitOnChange: true
 			if(thisName) app.updateLabel("$thisName")
 			input "contact", "capability.contactSensor", title: "Select Contact Sensor", submitOnChange: true, required: true
-			input "openClose", "bool", title: "Turn this on for closed, open is default (switch turns on for open)", submitOnChange: true
 			input "delayTime", "number", title: "Enter number of milliseconds to delay for debounce", submitOnChange: true, defaultValue: 1000
 		}
 	}
@@ -35,8 +34,7 @@ def updated() {
 
 def initialize() {
 	def debounceDev = getChildDevice("debounceSwitch_${app.id}")
-	if(!debounceDev) debounceDev = addChildDevice("hubitat", "Virtual Switch", "debounceSwitch_${app.id}", null, [label: thisName, name: thisName])
-	debounceDev.off()
+	if(!debounceDev) debounceDev = addChildDevice("hubitat", "Virtual Contact Sensor", "debounceSwitch_${app.id}", null, [label: thisName, name: thisName])
 	subscribe(contact, "contact", handler)
 }
 
@@ -46,8 +44,8 @@ def handler(evt) {
 }
 
 def debounced(data) {
-	def onOff = openClose ? data.o == "closed" : data.o == "open"
-	log.info "Debounced switch " + (onOff ? "on" : "off")
+	log.info "Debounced contact $data.o"
 	def debounceDev = getChildDevice("debounceSwitch_${app.id}")
-	if(onOff) debounceDev.on() else debounceDev.off()
+	debounceDev."$data.o()"
 }
+
