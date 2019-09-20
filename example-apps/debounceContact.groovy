@@ -14,7 +14,7 @@ preferences {
 def mainPage() {
 	dynamicPage(name: "mainPage", title: " ", install: true, uninstall: true) {
 		section {
-			input "thisName", "text", title: "Name this debouncer; debounce switch will have this name", submitOnChange: true
+			input "thisName", "text", title: "Name this debouncer; debounced contact device will have this name", submitOnChange: true
 			if(thisName) app.updateLabel("$thisName")
 			input "contact", "capability.contactSensor", title: "Select Contact Sensor", submitOnChange: true, required: true
 			input "delayTime", "number", title: "Enter number of milliseconds to delay for debounce", submitOnChange: true, defaultValue: 1000
@@ -48,4 +48,3 @@ def debounced(data) {
 	def debounceDev = getChildDevice("debounceSwitch_${app.id}")
 	debounceDev."$data.o()"
 }
-
