@@ -46,5 +46,6 @@ def handler(evt) {
 def debounced(data) {
 	log.info "Debounced contact $data.o"
 	def debounceDev = getChildDevice("debounceSwitch_${app.id}")
-	debounceDev."$data.o()"
+	if(data.o == "open") debounceDev.open() else debounceDev.close()
 }
+
