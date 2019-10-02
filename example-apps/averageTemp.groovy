@@ -42,7 +42,7 @@ def averageTemp() {
 	def total = 0
 	def n = tempSensors.size()
 	tempSensors.each {total += it.currentTemperature}
-	return total / n
+	return (total / n).toDouble().round(1)
 }
 
 def handler(evt) {
