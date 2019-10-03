@@ -49,5 +49,5 @@ def handler(evt) {
 	def averageDev = getChildDevice("AverageHumid_${app.id}")
 	def avg = averageHumid()
 	averageDev.setHumidity(avg)
-	log.info "Average humidity = $avg°"
+	log.info "Average humidity = $avg%"
 }
