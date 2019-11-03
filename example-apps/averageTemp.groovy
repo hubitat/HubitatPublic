@@ -17,6 +17,11 @@ def mainPage() {
 			input "thisName", "text", title: "Name this temperature averager", submitOnChange: true
 			if(thisName) app.updateLabel("$thisName")
 			input "tempSensors", "capability.temperatureMeasurement", title: "Select Temperature Sensors", submitOnChange: true, required: true, multiple: true
+            paragraph "Enter weight factors"
+            tempSensors.each {
+                def id = it.id
+                input "weight$id", "decimal", title: "$it ($it.currentTemperature)", defaultValue: 1.0, submitOnChange: true, width: 3
+            }
 			if(tempSensors) paragraph "Current average is ${averageTemp()}°"
 		}
 	}
@@ -40,9 +45,12 @@ def initialize() {
 
 def averageTemp() {
 	def total = 0
-	def n = tempSensors.size()
-	tempSensors.each {total += it.currentTemperature}
-	return (total / n).toDouble().round(1)
+	def n = 0
+	tempSensors.each {
+        total += it.currentTemperature * (settings["weight$it.id"] != null ? settings["weight$it.id"] : 1)
+        n += settings["weight$it.id"] != null ? settings["weight$it.id"] : 1
+    }
+	return (total / (n = 0 ? tempSensors.size() : n)).toDouble().round(1)
 }
 
 def handler(evt) {
@@ -51,3 +59,4 @@ def handler(evt) {
 	averageDev.setTemperature(avg)
 	log.info "Average temperature = $avg°"
 }
+
