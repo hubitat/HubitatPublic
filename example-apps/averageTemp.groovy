@@ -18,10 +18,7 @@ def mainPage() {
 			if(thisName) app.updateLabel("$thisName")
 			input "tempSensors", "capability.temperatureMeasurement", title: "Select Temperature Sensors", submitOnChange: true, required: true, multiple: true
 			paragraph "Enter weight factors"
-			tempSensors.each {
-				def id = it.id
-				input "weight$id", "decimal", title: "$it ($it.currentTemperature)", defaultValue: 1.0, submitOnChange: true, width: 3
-			}
+			tempSensors.each {input "weight$it.id", "decimal", title: "$it ($it.currentTemperature)", defaultValue: 1.0, submitOnChange: true, width: 3}
 			if(tempSensors) paragraph "Current average is ${averageTemp()}°"
 		}
 	}
