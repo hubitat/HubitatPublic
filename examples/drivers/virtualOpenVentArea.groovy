@@ -1,5 +1,5 @@
 metadata {
-    definition (name: "Virtual Open Vent Areal", namespace: "hubitat", author: "Bruce Ravenel") {
+    definition (name: "Virtual Open Vent Area", namespace: "hubitat", author: "Bruce Ravenel") {
         capability "Sensor"
         command "setOpenVentArea", ["NUMBER"]
         attribute "openVentArea", "Number"
