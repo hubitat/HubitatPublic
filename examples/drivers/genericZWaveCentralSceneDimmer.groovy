@@ -1,7 +1,11 @@
 /*
 	Generic Z-Wave CentralScene Dimmer
 
-	Copyright 2016, 2017, 2018 Hubitat Inc.  All Rights Reserved
+	Copyright 2016 -> 2020 Hubitat Inc.  All Rights Reserved
+	2019-11-14 2.1.7 maxwell
+	    -add safe nav on flashrate
+	    -add command class versions
+	    -move some leviton dimmers over from generic
 	2018-07-15 maxwell
 	    -add all button commands
    2018-06-04 maxwell
@@ -11,9 +15,14 @@
    2018-03-24 maxwell
         -initial pub
 
-    zwp switch multilevel v1 (no duration)
-
 */
+import groovy.transform.Field
+
+@Field static Map commandClassVersions = [
+        0x20: 1     //basic
+        ,0x26: 1    //switchMultiLevel
+        ,0x5B: 1    //centralScene
+]
 
 metadata {
     definition (name: "Generic Z-Wave CentralScene Dimmer",namespace: "hubitat", author: "Mike Maxwell") {
@@ -35,6 +44,13 @@ metadata {
         command "doubleTap", ["NUMBER"]
 
         fingerprint deviceId: "3034", inClusters: "0x5E,0x86,0x72,0x5A,0x85,0x59,0x73,0x26,0x27,0x70,0x2C,0x2B,0x5B,0x7A", outClusters: "0x5B", mfr: "0315", prod: "4447", deviceJoinName: "ZWP WD-100 Dimmer"
+        fingerprint deviceId: "3034", inClusters: "0x5E,0x86,0x72,0x5A,0x85,0x59,0x55,0x73,0x26,0x70,0x2C,0x2B,0x5B,0x7A,0x9F,0x6C", outClusters: "0x5B", mfr: "0315", prod: "4447", deviceJoinName: "ZLINK ZL-WD-100"
+        fingerprint deviceId: "0334", inClusters: "0x26,0x27,0x2B,0x2C,0x72,0x86,0x91,0x77,0x73", mfr: "001D", prod: "1B03", deviceJoinName: "Leviton DXMX1"
+        fingerprint deviceId: "0209", inClusters: "0x26,0x27,0x2B,0x2C,0x85,0x72,0x86,0x91,0x77,0x73", outClusters: "0x82", mfr: "001D", prod: "0401", deviceJoinName: "Leviton VRI06-1LZ"
+        fingerprint deviceId: "0209", inClusters: "0x25,0x27,0x2B,0x2C,0x85,0x72,0x86,0x91,0x77,0x73", outClusters: "0x82", mfr: "001D", prod: "0301", deviceJoinName: "Leviton VRI10-1LZ"
+        fingerprint deviceId: "0209", inClusters: "0x26,0x27,0x2B,0x2C,0x85,0x72,0x86,0x91,0x77,0x73", outClusters: "0x82", mfr: "001D", prod: "0501", deviceJoinName: "Leviton ???"
+        fingerprint deviceId: "0334", inClusters: "0x26,0x27,0x2B,0x2C,0x85,0x72,0x86,0x91,0x77,0x73", outClusters: "0x82", mfr: "001D", prod: "0602", deviceJoinName: "Leviton ???"
+        fingerprint deviceId: "0001", inClusters: "0x5E,0x85,0x59,0x86,0x72,0x70,0x5A,0x73,0x26,0x20,0x27,0x2C,0x2B,0x7A", outClusters: "0x82", mfr: "001D", prod: "3501", deviceJoinName: "Leviton DZPD3-2BW"
 
     }
     preferences {
@@ -53,7 +69,7 @@ def logsOff(){
 
 def parse(String description) {
     if (logEnable) log.debug "parse description: ${description}"
-    def cmd = zwave.parse(description,[ 0x26: 1])
+    def cmd = zwave.parse(description,commandClassVersions)
     if (cmd) {zwaveEvent(cmd)}
     return
 }
@@ -152,6 +168,7 @@ def dimmerEvents(rawValue,type) {
         sendEvent(name: "level", value: levelValue, descriptionText: levelText, type:type,unit:"%")
     }
     state.bin = -1
+    return
 }
 
 def zwaveEvent(hubitat.zwave.commands.centralscenev1.CentralSceneNotification cmd){
@@ -254,21 +271,21 @@ def off() {
 }
 
 def flash() {
-    def descriptionText = "${device.getDisplayName()} was set to flash with a rate of ${flashRate} milliseconds"
+    def descriptionText = "${device.getDisplayName()} was set to flash with a rate of ${flashRate ?: 750} milliseconds"
     if (txtEnable) log.info "${descriptionText}"
     state.flashing = true
     flashOn()
 }
 
 def flashOn() {
-    if(!state.flashing) return
-    runInMillis(flashRate.toInteger(), flashOff)
+    if (!state.flashing) return
+    runInMillis((flashRate ?: 750).toInteger(), flashOff)
     return [zwave.basicV1.basicSet(value: 0xFF).format()]
 }
 
 def flashOff() {
-    if(!state.flashing) return
-    runInMillis(flashRate.toInteger(), flashOn)
+    if (!state.flashing) return
+    runInMillis((flashRate ?: 750).toInteger(), flashOn)
     return [zwave.basicV1.basicSet(value: 0x00).format()]
 }
 
@@ -280,16 +297,16 @@ def refresh() {
 
 def installed(){
     log.warn "installed..."
-    sendEvent(name: "numberOfButtons", value: 2)
-    for (i = 1; i <= 2; i++){
-        state."${i}" = 0
-    }
     sendEvent(name: "level", value: 20)
 }
 
 def configure() {
     log.warn "configure..."
     runIn(1800,logsOff)
+    sendEvent(name: "numberOfButtons", value: 2)
+    for (i = 1; i <= 2; i++){
+        state."${i}" = 0
+    }
     refresh()
 }
 
