@@ -1,11 +1,17 @@
 /*
-    Copyright 2016, 2017, 2018 Hubitat Inc.  All Rights Reserved
+    Copyright 2016 -> 2020 Hubitat Inc.  All Rights Reserved
 
     virtual lock with lock codes for testing new lockCode capabilities
-
+    2019-09-08 2.1.5 ravenel
+        -add lastCodeName
+    2019-09-04 2.1.5 maxwell
+        -add test code on initial install
+        -force state change on lock code event
+    2018-10-29 maxwell
+        -add getCodes stub
     2018-07-08 maxwell
         -add encryption support
-		-add extended comments for community
+        -add extended comments for community
 
 */
 import groovy.json.JsonSlurper
@@ -16,9 +22,11 @@ metadata {
         capability "Actuator"
         capability "Lock"
         capability "Lock Codes"
-        //test commands
+        capability "Refresh"
+
         command "testSetMaxCodes", ["NUMBER"]
         command "testUnlockWithCode", ["NUMBER"]
+        attribute "lastCodeName", "STRING"
     }
 
     preferences{
@@ -38,6 +46,8 @@ def installed(){
     log.warn "installed..."
     sendEvent(name:"maxCodes",value:20)
     sendEvent(name:"codeLength",value:4)
+    //add a test lock code
+    setCode(1, "1234", "Hubitat")
     lock()
 }
 
@@ -59,6 +69,10 @@ def parse(String description) {
 }
 
 //capability commands
+def refresh() {
+    sendEvent(name:"lock", value: device.currentValue("lock"))
+}
+
 def lock(){
     def descriptionText = "${device.displayName} was locked"
     if (txtEnable) log.info "${descriptionText}"
@@ -162,10 +176,11 @@ def testUnlockWithCode(code = null){
     def lockCode = lockCodes.find{ it.value.code == "${code}" }
     if (lockCode){
         def data = ["${lockCode.key}":lockCode.value]
-        def descriptionText = "${device.displayName} was unlocked [physical]"
+        def descriptionText = "${device.displayName} was unlocked by ${lockCode.value.name}"
         if (txtEnable) log.info "${descriptionText}"
         if (optEncrypt) data = encrypt(JsonOutput.toJson(data))
-        sendEvent(name:"lock",value:"unlocked",descriptionText: descriptionText, type:"physical",data:data)
+        sendEvent(name:"lock",value:"unlocked",descriptionText: descriptionText, type:"physical",data:data, isStateChange: true)
+        sendEvent(name:"lastCodeName", value: lockCode.value.name, descriptionText: descriptionText, isStateChange: true)
     } else {
         if (txtEnable) log.debug "testUnlockWithCode failed with invalid code"
     }
@@ -225,6 +240,10 @@ private getLockCodes() {
         else result = new JsonSlurper().parseText(decrypt(lockCodes))
     }
     return result
+}
+
+def getCodes() {
+    //no op
 }
 
 private updateLockCodes(lockCodes){
