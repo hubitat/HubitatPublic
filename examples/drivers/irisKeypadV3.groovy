@@ -5,12 +5,12 @@
 	2019-12-13 2.1.8 maxwell
 		-add beep for older firmware devices
     2019-09-29 2.1.5 ravenel
-        -add lastCodeName attribute
+       	-add lastCodeName attribute
     2019-07-01 2.1.2 maxwell
-        -change hsm commands to void
-        -force state change on battery reports
+       	-change hsm commands to void
+       	-force state change on battery reports
     2019-04-02 2.0.9 maxwell
-        -updates for countdown and confirmation sounds
+       	-updates for countdown and confirmation sounds
 	2019-03-05 2.0.7 maxwell
 	    -initial pub
 
@@ -48,6 +48,7 @@ metadata {
     }
 
     preferences{
+        input name: "altBeepEnable", type: "bool", title: "Enable alternate beep sound", defaultValue: false, description: ""
         input name: "optEncrypt", type: "bool", title: "Enable lockCode encryption", defaultValue: false, description: ""
         input "refTemp", "decimal", title: "Reference temperature", description: "Enter current reference temperature reading", range: "*..*"
         input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: true, description: ""
@@ -134,11 +135,10 @@ def parse(String description) {
 }
 
 List<String> beep(){
-    log.info getDataValue("inClusters")
-    if (getDataValue("inClusters").endsWith("FC04")) {
-        return ["he raw 0x${device.deviceNetworkId} 1 1 0xFC04 {15 4E 10 00 00 00}"]
-    } else {
+    if (altBeepEnable == true) {
         return ["he raw 0x${device.deviceNetworkId} 1 1 0x0501 {09 01 04 05 01 01 01}"]
+    } else {
+        return ["he raw 0x${device.deviceNetworkId} 1 1 0xFC04 {15 4E 10 00 00 00}"]
     }
 }
 
