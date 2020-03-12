@@ -2,6 +2,9 @@
     Copyright 2016 -> 2020 Hubitat Inc.  All Rights Reserved
 
     virtual lock with lock codes for testing new lockCode capabilities
+    2020-03-11 2.2.0 maxwell
+		-refactor
+		-fix lock codes starting with 0 not working
     2019-09-08 2.1.5 ravenel
         -add lastCodeName
     2019-09-04 2.1.5 maxwell
@@ -25,7 +28,7 @@ metadata {
         capability "Refresh"
 
         command "testSetMaxCodes", ["NUMBER"]
-        command "testUnlockWithCode", ["NUMBER"]
+        command "testUnlockWithCode", ["STRING"]
         attribute "lastCodeName", "STRING"
     }
 
@@ -37,12 +40,12 @@ metadata {
     }
 }
 
-def logsOff(){
+void logsOff(){
     log.warn "debug logging disabled..."
     device.updateSetting("logEnable",[value:"false",type:"bool"])
 }
 
-def installed(){
+void installed(){
     log.warn "installed..."
     sendEvent(name:"maxCodes",value:20)
     sendEvent(name:"codeLength",value:4)
@@ -51,7 +54,7 @@ def installed(){
     lock()
 }
 
-def updated() {
+void updated() {
     log.info "updated..."
     log.warn "description logging is: ${txtEnable == true}"
     log.warn "encryption is: ${optEncrypt == true}"
@@ -62,61 +65,65 @@ def updated() {
 }
 
 //handler for hub to hub integrations
-def parse(String description) {
+void parse(String description) {
     if (logEnable) log.debug "parse ${description}"
     if (description == "locked") lock()
     else if (description == "unlocked") unlock()
 }
 
 //capability commands
-def refresh() {
+void refresh() {
     sendEvent(name:"lock", value: device.currentValue("lock"))
 }
 
-def lock(){
-    def descriptionText = "${device.displayName} was locked"
+void lock(){
+    String descriptionText = "${device.displayName} was locked"
     if (txtEnable) log.info "${descriptionText}"
     sendEvent(name:"lock",value:"locked",descriptionText: descriptionText, type:"digital")
 }
 
-def unlock(){
+void unlock(){
     /*
     on sucess event
         name	value								data
         lock	unlocked | unlocked with timeout	[<codeNumber>:[code:<pinCode>, name:<display name for code>]]
     */
-    def descriptionText = "${device.displayName} was unlocked [digital]"
+    String descriptionText = "${device.displayName} was unlocked [digital]"
     if (txtEnable) log.info "${descriptionText}"
     sendEvent(name:"lock",value:"unlocked",descriptionText: descriptionText, type:"digital")
 }
 
-def setCodeLength(length){
+void setCodeLength(length){
     /*
 	on install/configure/change
 		name		value
 		codeLength	length
 	*/
-    def descriptionText = "${device.displayName} codeLength set to ${length}"
+    String descriptionText = "${device.displayName} codeLength set to ${length}"
     if (txtEnable) log.info "${descriptionText}"
     sendEvent(name:"codeLength",value:length,descriptionText:descriptionText)
 }
 
-def setCode(codeNumber, code, name = null) {
+void setCode(codeNumber, code, name = null) {
     /*
 	on sucess
 		name		value								data												notes
 		codeChanged	added | changed						[<codeNumber>":["code":"<pinCode>", "name":"<display name for code>"]]	default name to code #<codeNumber>
-		lockCodes	JSON list of all lockCode
+		lockCodes	JSON map of all lockCode
 	*/
+ 	if (codeNumber == null || codeNumber == 0 || code == null) return
+
+    if (logEnable) log.debug "setCode- ${codeNumber}"	
+	
     if (!name) name = "code #${codeNumber}"
 
-    def lockCodes = getLockCodes()
-    def codeMap = getCodeMap(lockCodes,codeNumber)
-    def data = [:]
-    def value
-    //verify proposed changes
-    if (!changeIsValid(codeMap,codeNumber,code,name)) return
-
+    Map lockCodes = getLockCodes()
+    Map codeMap = getCodeMap(lockCodes,codeNumber)
+    if (!changeIsValid(lockCodes,codeMap,codeNumber,code,name)) return
+	
+   	Map data = [:]
+    String value
+	
     if (logEnable) log.debug "setting code ${codeNumber} to ${code} for lock code name ${name}"
 
     if (codeMap) {
@@ -138,16 +145,16 @@ def setCode(codeNumber, code, name = null) {
     sendEvent(name:"codeChanged",value:value,data:data, isStateChange: true)
 }
 
-def deleteCode(codeNumber) {
+void deleteCode(codeNumber) {
     /*
 	on sucess
 		name		value								data
 		codeChanged	deleted								[<codeNumber>":["code":"<pinCode>", "name":"<display name for code>"]]
 		lockCodes	[<codeNumber>":["code":"<pinCode>", "name":"<display name for code>"],<codeNumber>":["code":"<pinCode>", "name":"<display name for code>"]]
 	*/
-    def codeMap = getCodeMap(lockCodes,"${codeNumber}")
-    def result = [:]
+    Map codeMap = getCodeMap(lockCodes,"${codeNumber}")
     if (codeMap) {
+		Map result = [:]
         //build new lockCode map, exclude deleted code
         lockCodes.each{
             if (it.key != "${codeNumber}"){
@@ -155,7 +162,7 @@ def deleteCode(codeNumber) {
             }
         }
         updateLockCodes(result)
-        def data =  ["${codeNumber}":codeMap]
+        Map data =  ["${codeNumber}":codeMap]
         //encrypt lockCode data is requested
         if (optEncrypt) data = encrypt(JsonOutput.toJson(data))
         sendEvent(name:"codeChanged",value:"deleted",data:data, isStateChange: true)
@@ -163,20 +170,20 @@ def deleteCode(codeNumber) {
 }
 
 //virtual test methods
-def testSetMaxCodes(length){
+void testSetMaxCodes(length){
     //on a real lock this event is generated from the response to a configuration report request
     sendEvent(name:"maxCodes",value:length)
 }
 
-def testUnlockWithCode(code = null){
+void testUnlockWithCode(code = null){
     if (logEnable) log.debug "testUnlockWithCode: ${code}"
     /*
 	lockCodes in this context calls the helper function getLockCodes()
 	*/
-    def lockCode = lockCodes.find{ it.value.code == "${code}" }
+    Object lockCode = lockCodes.find{ it.value.code == "${code}" }
     if (lockCode){
-        def data = ["${lockCode.key}":lockCode.value]
-        def descriptionText = "${device.displayName} was unlocked by ${lockCode.value.name}"
+        Map data = ["${lockCode.key}":lockCode.value]
+        String descriptionText = "${device.displayName} was unlocked by ${lockCode.value.name}"
         if (txtEnable) log.info "${descriptionText}"
         if (optEncrypt) data = encrypt(JsonOutput.toJson(data))
         sendEvent(name:"lock",value:"unlocked",descriptionText: descriptionText, type:"physical",data:data, isStateChange: true)
@@ -187,53 +194,51 @@ def testUnlockWithCode(code = null){
 }
 
 //helpers
-private changeIsValid(codeMap,codeNumber,code,name){
+Boolean changeIsValid(lockCodes,codeMap,codeNumber,code,name){
     //validate proposed lockCode change
-    def result = true
-    def codeLength = device.currentValue("codeLength")?.toInteger() ?: 4
-    def maxCodes = device.currentValue("maxCodes")?.toInteger() ?: 20
-    def isBadLength = codeLength != code.size()
-    def isBadCodeNum = maxCodes < codeNumber
-    //load lockCodes into a local variable since we're referencing it multiple times
-    def lockCodes = getLockCodes()
+    Boolean result = true
+    Integer maxCodeLength = device.currentValue("codeLength")?.toInteger() ?: 4
+    Integer maxCodes = device.currentValue("maxCodes")?.toInteger() ?: 20
+    Boolean isBadLength = code.size() > maxCodeLength
+    Boolean isBadCodeNum = maxCodes < codeNumber
     if (lockCodes) {
-        def nameSet = lockCodes.collect{ it.value.name }
-        def codeSet = lockCodes.collect{ it.value.code }
+        List nameSet = lockCodes.collect{ it.value.name }
+        List codeSet = lockCodes.collect{ it.value.code }
         if (codeMap) {
             nameSet = nameSet.findAll{ it != codeMap.name }
             codeSet = codeSet.findAll{ it != codeMap.code }
         }
-        def nameInUse = name in nameSet
-        def codeInUse = code in codeSet
+        Boolean nameInUse = name in nameSet
+        Boolean codeInUse = code in codeSet
         if (nameInUse || codeInUse) {
-            if (logEnable && nameInUse) { log.warn "changeIsValid:false, name:${name} is in use:${ lockCodes.find{ it.value.name == "${name}" } }" }
-            if (logEnable && codeInUse) { log.warn "changeIsValid:false, code:${code} is in use:${ lockCodes.find{ it.value.code == "${code}" } }" }
+            if (nameInUse) { log.warn "changeIsValid:false, name:${name} is in use:${ lockCodes.find{ it.value.name == "${name}" } }" }
+            if (codeInUse) { log.warn "changeIsValid:false, code:${code} is in use:${ lockCodes.find{ it.value.code == "${code}" } }" }
             result = false
         }
     }
     if (isBadLength || isBadCodeNum) {
-        if (logEnable && isBadLength) { log.warn "changeIsValid:false, length of code ${code} does not match codeLength of ${codeLength}" }
-        if (logEnable && isBadCodeNum) { log.warn "changeIsValid:false, codeNumber ${codeNumber} is larger than maxCodes of ${maxCodes}" }
+        if (isBadLength) { log.warn "changeIsValid:false, length of code ${code} does not match codeLength of ${maxCodeLength}" }
+        if (isBadCodeNum) { log.warn "changeIsValid:false, codeNumber ${codeNumber} is larger than maxCodes of ${maxCodes}" }
         result = false
     }
     return result
 }
 
-private getCodeMap(lockCodes,codeNumber){
-    def codeMap = [:]
-    def lockCode = lockCodes?."${codeNumber}"
+Map getCodeMap(lockCodes,codeNumber){
+    Map codeMap = [:]
+    Map lockCode = lockCodes?."${codeNumber}"
     if (lockCode) {
         codeMap = ["name":"${lockCode.name}", "code":"${lockCode.code}"]
     }
     return codeMap
 }
 
-private getLockCodes() {
+Map getLockCodes() {
     /*
-	on a real lock we would fetch these from the response to a configuration report request
+	on a real lock we would fetch these from the response to a userCode report request
 	*/
-    def lockCodes = device.currentValue("lockCodes")
-    def result = [:]
+    String lockCodes = device.currentValue("lockCodes")
+    Map result = [:]
     if (lockCodes) {
         //decrypt codes if they're encrypted
         if (lockCodes[0] == "{") result = new JsonSlurper().parseText(lockCodes)
@@ -242,25 +247,27 @@ private getLockCodes() {
     return result
 }
 
-def getCodes() {
+void getCodes() {
     //no op
 }
 
-private updateLockCodes(lockCodes){
+void updateLockCodes(lockCodes){
     /*
 	whenever a code changes we update the lockCodes event
 	*/
     if (logEnable) log.debug "updateLockCodes: ${lockCodes}"
-    def data = new groovy.json.JsonBuilder(lockCodes)
-    if (optEncrypt) data = encrypt(data.toString())
-    sendEvent(name:"lockCodes",value:data)
+    String strCodes = JsonOutput.toJson(lockCodes)
+    if (optEncrypt) {
+        strCodes = encrypt(strCodes)
+    }
+    sendEvent(name:"lockCodes", value:strCodes, isStateChange:true)
 }
 
-private updateEncryption(){
+void updateEncryption(){
     /*
 	resend lockCodes map when the encryption option is changed
 	*/
-    def lockCodes = device.currentValue("lockCodes") //encrypted or decrypted
+    String lockCodes = device.currentValue("lockCodes") //encrypted or decrypted
     if (lockCodes){
         if (optEncrypt && lockCodes[0] == "{") {	//resend encrypted
             sendEvent(name:"lockCodes",value: encrypt(lockCodes))
