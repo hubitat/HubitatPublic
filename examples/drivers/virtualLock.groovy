@@ -3,8 +3,8 @@
 
     virtual lock with lock codes for testing new lockCode capabilities
     2020-03-11 2.2.0 maxwell
-		-refactor
-		-fix lock codes starting with 0 not working
+	-refactor
+	-fix lock codes starting with 0 not working
     2019-09-08 2.1.5 ravenel
         -add lastCodeName
     2019-09-04 2.1.5 maxwell
