@@ -61,6 +61,7 @@ metadata {
         fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0008,0300,0B05,1000,FC82", outClusters: "0019", manufacturer: "innr", model: "RS 230 C", deviceJoinName: "Innr GU10 Colour bulb"
         fingerprint profileId:"0104", endpointId:"01", inClusters:"0000,0004,0003,0006,0008,0005,0300,1000,0019", outClusters:"0019", model:"LXT56-LS27LX1.4", manufacturer:"3A Smart Home DE", deviceJoinName: "Nue HGZB-18A strip controller"
         fingerprint profileId:"C05E", endpointId:"01", inClusters:"0000,0003,0004,0005,0006,0008,0300,0B05,1000", outClusters:"0019,1000", model:"RGBgenie   ZB-1025", manufacturer:"RGBgenie", deviceJoinName: "RGBGenie ZB-1025 strip controller"
+        fingerprint profileId:"0104", endpointId:"01", inClusters:"0000,0004,0003,0005,000A,0102,000D,0013,0006,0001,0406,0008,0300,0403,0405,0402", outClusters:"0019,000A,000D,0102,0013,0006,0001,0406,0008,0300", model:"lumi.light.aqcn02", manufacturer:"LUMI", deviceJoinName: "Xiaomi Aqara LED light bulb (Tunable white)"
     }
 
     preferences {
