@@ -1,7 +1,9 @@
 /*
 	Generic Component Dimmer
-	Copyright 2016, 2017, 2018 Hubitat Inc. All Rights Reserved
-    2019-09-07 2.1.5 maxwell
+	Copyright 2016 -> 2020 Hubitat Inc. All Rights Reserved
+	2020-04-16 2.2.0 maxwell
+		-add missing log method
+	2019-09-07 2.1.5 maxwell
         -refactor declarations
 	2018-12-15 maxwell
 	    -initial pub
@@ -27,7 +29,7 @@ void updated() {
 }
 
 void installed() {
-    "Installed..."
+    log.info "Installed..."
     device.updateSetting("txtEnable",[type:"bool",value:true])
     refresh()
 }
