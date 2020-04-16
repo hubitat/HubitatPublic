@@ -1,7 +1,8 @@
 /*
 	Generic Component Switch
-	Copyright 2016, 2017, 2018 Hubitat Inc. All Rights Reserved
-
+	Copyright 2016 -> 2020 Hubitat Inc. All Rights Reserved
+    2020-04-16 2.2.0 maxwell
+        -refactor
 	2018-12-15 maxwell
 	    -initial pub
 
@@ -18,37 +19,36 @@ metadata {
     }
 }
 
-def updated() {
+void updated() {
     log.info "Updated..."
     log.warn "description logging is: ${txtEnable == true}"
 }
 
-def installed() {
-    "Installed..."
+void installed() {
+    log.info "Installed..."
     device.updateSetting("txtEnable",[type:"bool",value:true])
     refresh()
 }
 
-def parse(String description) { log.warn "parse(String description) not implemented" }
+void parse(String description) { log.warn "parse(String description) not implemented" }
 
-def parse(List description) {
+void parse(List description) {
     description.each {
         if (it.name in ["switch"]) {
             if (txtEnable) log.info it.descriptionText
             sendEvent(it)
         }
     }
-    return
 }
 
-def on() {
+void on() {
     parent?.componentOn(this.device)
 }
 
-def off() {
+void off() {
     parent?.componentOff(this.device)
 }
 
-def refresh() {
+void refresh() {
     parent?.componentRefresh(this.device)
 }
