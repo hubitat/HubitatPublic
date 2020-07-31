@@ -2,8 +2,15 @@
 	Generic Z-Wave CentralScene Dimmer
 
 	Copyright 2016 -> 2020 Hubitat Inc.  All Rights Reserved
-	2020-02-04 2.1.9 maxwell
+	2020--07-31 2.2.3 maxwell
+	    -switch to internal secure encap method
+	2020-06-01 2.2.1 bcopeland
+	    -basicSet to switchMultilevelSet conversion
+	2020-03-25 2.2.0 maxwell
+		-C7/S2 updates
 		-refactor
+		-remove DZMX1 (move to generic dimmer)
+		-add supervision report response
 	2019-11-14 2.1.7 maxwell
 	    -add safe nav on flashrate
 	    -add command class versions
@@ -11,7 +18,7 @@
 	2018-07-15 maxwell
         -add all button commands
     2018-06-04 maxwell
-        -updates to support changeLevel
+       	-updates to support changeLevel
     2018-03-26 maxwell
         -add standard level events algorithm
     2018-03-24 maxwell
@@ -50,7 +57,6 @@ metadata {
 
         fingerprint deviceId: "3034", inClusters: "0x5E,0x86,0x72,0x5A,0x85,0x59,0x73,0x26,0x27,0x70,0x2C,0x2B,0x5B,0x7A", outClusters: "0x5B", mfr: "0315", prod: "4447", deviceJoinName: "ZWP WD-100 Dimmer"
         fingerprint deviceId: "3034", inClusters: "0x5E,0x86,0x72,0x5A,0x85,0x59,0x55,0x73,0x26,0x70,0x2C,0x2B,0x5B,0x7A,0x9F,0x6C", outClusters: "0x5B", mfr: "0315", prod: "4447", deviceJoinName: "ZLINK ZL-WD-100"
-        fingerprint deviceId: "0334", inClusters: "0x26,0x27,0x2B,0x2C,0x72,0x86,0x91,0x77,0x73", mfr: "001D", prod: "1B03", deviceJoinName: "Leviton DXMX1"
         fingerprint deviceId: "0209", inClusters: "0x26,0x27,0x2B,0x2C,0x85,0x72,0x86,0x91,0x77,0x73", outClusters: "0x82", mfr: "001D", prod: "0401", deviceJoinName: "Leviton VRI06-1LZ"
         fingerprint deviceId: "0209", inClusters: "0x25,0x27,0x2B,0x2C,0x85,0x72,0x86,0x91,0x77,0x73", outClusters: "0x82", mfr: "001D", prod: "0301", deviceJoinName: "Leviton VRI10-1LZ"
         fingerprint deviceId: "0209", inClusters: "0x26,0x27,0x2B,0x2C,0x85,0x72,0x86,0x91,0x77,0x73", outClusters: "0x82", mfr: "001D", prod: "0501", deviceJoinName: "Leviton ???"
@@ -82,32 +88,11 @@ void parse(String description){
 }
 
 String secure(String cmd){
-    if (getDataValue("zwaveSecurePairingComplete") != "true") {
-        return cmd
-    }
-    Short S2 = getDataValue("S2")?.toInteger()
-    String encap = ""
-    String keyUsed = "S0"
-    if (S2 == null) { //S0 existing device
-        encap = "988100"
-    } else if ((S2 & 0x04) == 0x04) { //S2_ACCESS_CONTROL
-        keyUsed = "S2_ACCESS_CONTROL"
-        encap = "9F0304"
-    } else if ((S2 & 0x02) == 0x02) { //S2_AUTHENTICATED
-        keyUsed = "S2_AUTHENTICATED"
-        encap = "9F0302"
-    } else if ((S2 & 0x01) == 0x01) { //S2_UNAUTHENTICATED
-        keyUsed = "S2_UNAUTHENTICATED"
-        encap = "9F0301"
-    } else if ((S2 & 0x80) == 0x80) { //S0 on C7
-        encap = "988100"
-    }
-    if (logEnable) log.trace "keyUsed:${keyUsed}"
-    return "${encap}${cmd}"
+    return zwaveSecureEncap(cmd)
 }
 
 String secure(hubitat.zwave.Command cmd){
-    return secure(cmd.format())
+    return zwaveSecureEncap(cmd)
 }
 
 void zwaveEvent(hubitat.zwave.commands.supervisionv1.SupervisionGet cmd){
@@ -115,6 +100,7 @@ void zwaveEvent(hubitat.zwave.commands.supervisionv1.SupervisionGet cmd){
     if (encapCmd) {
         zwaveEvent(encapCmd)
     }
+    sendHubCommand(new hubitat.device.HubAction(secure(zwave.supervisionV1.supervisionReport(sessionID: cmd.sessionID, reserved: 0, moreStatusUpdates: false, status: 0xFF, duration: 0)), hubitat.device.Protocol.ZWAVE))
 }
 
 String startLevelChange(direction){
@@ -168,7 +154,7 @@ void zwaveEvent(hubitat.zwave.commands.centralscenev1.CentralSceneNotification c
     }
 
     if (action){
-		sendButtonEvent(action, button, "physical")
+        sendButtonEvent(action, button, "physical")
     }
 }
 
@@ -243,29 +229,29 @@ void dimmerEvents(rawValue,type){
 }
 
 void delayHold(button){
-	sendButtonEvent("held", button, "physical")
+    sendButtonEvent("held", button, "physical")
 }
 
 void push(button){
-	sendButtonEvent("pushed", button, "digital")
+    sendButtonEvent("pushed", button, "digital")
 }
 
 void hold(button){
-	sendButtonEvent("held", button, "digital")
+    sendButtonEvent("held", button, "digital")
 }
 
 void release(button){
-	sendButtonEvent("released", button, "digital")
+    sendButtonEvent("released", button, "digital")
 }
 
 void doubleTap(button){
-	sendButtonEvent("doubleTapped", button, "digital")
+    sendButtonEvent("doubleTapped", button, "digital")
 }
 
 void sendButtonEvent(action, button, type){
-	String descriptionText = "${device.displayName} button ${button} was ${action} [${type}]"
+    String descriptionText = "${device.displayName} button ${button} was ${action} [${type}]"
     if (txtEnable) log.info descriptionText
-    sendEvent(name:action, value:button, descriptionText:descriptionText, isStateChange:true, type:type)	
+    sendEvent(name:action, value:button, descriptionText:descriptionText, isStateChange:true, type:type)
 }
 
 List<String> setLevel(level){
@@ -283,7 +269,7 @@ List<String> setLevel(level,ramp){
     return [
             secure(zwave.configurationV1.configurationSet(scaledConfigurationValue:  ramp, parameterNumber: 8, size: 2))
             ,"delay 200"
-            ,secure(zwave.basicV1.basicSet(value: level))
+            ,secure(zwave.switchMultilevelV1.switchMultilevelSet(value: level))
             ,"delay ${delay}"
             ,secure(zwave.basicV1.basicGet())
     ]
@@ -294,7 +280,7 @@ List<String> on(){
     state.bin = -11
     state.flashing = false
     return delayBetween([
-            secure(zwave.basicV1.basicSet(value: 0xFF))
+            secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0xFF))
             ,secure(zwave.basicV1.basicGet())
     ] ,200)
 }
@@ -303,7 +289,7 @@ List<String> off(){
     state.bin = -10
     state.flashing = false
     return delayBetween([
-            secure(zwave.basicV1.basicSet(value: 0x00))
+            secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0x00))
             ,secure(zwave.basicV1.basicGet())
     ] ,200)
 }
@@ -317,13 +303,13 @@ String flash(){
 String flashOn(){
     if (!state.flashing) return
     runInMillis((flashRate ?: 750).toInteger(), flashOff)
-    return secure(zwave.basicV1.basicSet(value: 0xFF))
+    return secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0xFF))
 }
 
 String flashOff(){
     if (!state.flashing) return
     runInMillis((flashRate ?: 750).toInteger(), flashOn)
-    return secure(zwave.basicV1.basicSet(value: 0x00))
+    return secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0x00))
 }
 
 String refresh(){
@@ -341,8 +327,8 @@ void configure(){
     log.warn "configure..."
     runIn(1800,logsOff)
     sendEvent(name: "numberOfButtons", value: 2)
-	state."${1}" = 0
-	state."${2}" = 0
+    state."${1}" = 0
+    state."${2}" = 0
     runIn(5, "refresh")
 }
 
