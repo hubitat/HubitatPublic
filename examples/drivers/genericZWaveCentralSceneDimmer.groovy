@@ -7,22 +7,22 @@
 	2020-06-01 2.2.1 bcopeland
 	    -basicSet to switchMultilevelSet conversion
 	2020-03-25 2.2.0 maxwell
-		-C7/S2 updates
-		-refactor
-		-remove DZMX1 (move to generic dimmer)
-		-add supervision report response
+	    -C7/S2 updates
+	    -refactor
+	    -remove DZMX1 (move to generic dimmer)
+	    -add supervision report response
 	2019-11-14 2.1.7 maxwell
 	    -add safe nav on flashrate
 	    -add command class versions
 	    -move some leviton dimmers over from generic
 	2018-07-15 maxwell
-        -add all button commands
-    2018-06-04 maxwell
-       	-updates to support changeLevel
-    2018-03-26 maxwell
-        -add standard level events algorithm
-    2018-03-24 maxwell
-        -initial pub
+	    -add all button commands
+	2018-06-04 maxwell
+	    -updates to support changeLevel
+	2018-03-26 maxwell
+	    -add standard level events algorithm
+	2018-03-24 maxwell
+	    -initial pub
 
 */
 import groovy.transform.Field
