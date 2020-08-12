@@ -1,8 +1,9 @@
 /*
 	Basic Z-Wave tool
 
-	Copyright 2016, 2017, 2018 Hubitat Inc.  All Rights Reserved
-	
+	Copyright 2016 -> 2020 Hubitat Inc.  All Rights Reserved
+	2020-08-12 maxwell
+		-update with S2 support
 	2018-11-28 maxwell
 		-add command hints
 	2018-11-09 maxwell
@@ -128,6 +129,14 @@ def getCommandClassReport(){
     return delayBetween(cmds,500)
 }
 
+String secure(String cmd){
+    return zwaveSecureEncap(cmd)
+}
+
+String secure(hubitat.zwave.Command cmd){
+    return zwaveSecureEncap(cmd)
+}
+
 def installed(){}
 
 def configure() {}
@@ -135,9 +144,9 @@ def configure() {}
 def updated() {}
 
 private secureCmd(cmd) {
-    if (getDataValue("zwaveSecurePairingComplete") == "true") {
+    if (getDataValue("zwaveSecurePairingComplete") == "true" && getDataValue("S2") == null) {
 		return zwave.securityV1.securityMessageEncapsulation().encapsulate(cmd).format()
     } else {
-		return cmd.format()
+		return secure(cmd)
     }	
 }
