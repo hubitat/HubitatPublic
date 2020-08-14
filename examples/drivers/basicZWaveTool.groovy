@@ -2,6 +2,9 @@
 	Basic Z-Wave tool
 
 	Copyright 2016 -> 2020 Hubitat Inc.  All Rights Reserved
+	2020-08-14 maxwell
+		-refactor
+		-update VersionReport
 	2020-08-12 maxwell
 		-update with S2 support
 	2018-11-28 maxwell
@@ -41,45 +44,51 @@ metadata {
 	6:"Routing Slave",7:"Bridge Controller",8:"Device Under Test (DUT)",9:"N/A",10:"AV Remote",11:"AV Device"
 ]
 
-def parse(String description) {
-	//log.debug description
-    def cmd = zwave.parse(description,[0x85:1,0x86:1])
+void parse(String description) {
+    hubitat.zwave.Command cmd = zwave.parse(description,[0x85:1,0x86:2])
     if (cmd) {
         zwaveEvent(cmd)
     }
 }
 
 //Z-Wave responses
-def zwaveEvent(hubitat.zwave.commands.versionv1.VersionReport cmd) {
-	log.info "VersionReport- zWaveLibraryType:${zwLibType.find{ it.key == cmd.zWaveLibraryType }.value}"
-	log.info "VersionReport- zWaveProtocolVersion:${cmd.zWaveProtocolVersion}.${cmd.zWaveProtocolSubVersion}"
-	log.info "VersionReport- applicationVersion:${cmd.applicationVersion}.${cmd.applicationSubVersion}"
+void zwaveEvent(hubitat.zwave.commands.versionv2.VersionReport cmd) {
+    Double firmware0Version = cmd.firmware0Version + (cmd.firmware0SubVersion / 100)
+    Double protocolVersion = cmd.zWaveProtocolVersion + (cmd.zWaveProtocolSubVersion / 100)
+    log.info "Version Report - FirmwareVersion: ${firmware0Version}, ProtocolVersion: ${protocolVersion}, HardwareVersion: ${cmd.hardwareVersion}"
+    device.updateDataValue("firmwareVersion", "${firmware0Version}")
+    device.updateDataValue("protocolVersion", "${protocolVersion}")
+    device.updateDataValue("hardwareVersion", "${cmd.hardwareVersion}")
+    if (cmd.firmwareTargets > 0) {
+        cmd.targetVersions.each { target ->
+            Double targetVersion = target.version + (target.subVersion / 100)
+            device.updateDataValue("firmware${target.target}Version", "${targetVersion}")
+        }
+    }
 }
 
-def zwaveEvent(hubitat.zwave.commands.associationv1.AssociationReport cmd) {
+void zwaveEvent(hubitat.zwave.commands.associationv1.AssociationReport cmd) {
     log.info "AssociationReport- groupingIdentifier:${cmd.groupingIdentifier}, maxNodesSupported:${cmd.maxNodesSupported}, nodes:${cmd.nodeId}"
 }
 
-def zwaveEvent(hubitat.zwave.commands.configurationv1.ConfigurationReport cmd) {
+void zwaveEvent(hubitat.zwave.commands.configurationv1.ConfigurationReport cmd) {
     log.info "ConfigurationReport- parameterNumber:${cmd.parameterNumber}, size:${cmd.size}, value:${cmd.scaledConfigurationValue}"
 }
 
-def zwaveEvent(hubitat.zwave.commands.versionv1.VersionCommandClassReport cmd) {
+void zwaveEvent(hubitat.zwave.commands.versionv1.VersionCommandClassReport cmd) {
     log.info "CommandClassReport- class:${ "0x${intToHexStr(cmd.requestedCommandClass)}" }, version:${cmd.commandClassVersion}"		
 }	
 
-def zwaveEvent(hubitat.zwave.commands.securityv1.SecurityMessageEncapsulation cmd) {
-    def encapCmd = cmd.encapsulatedCommand()
-    def result = []
+String zwaveEvent(hubitat.zwave.commands.securityv1.SecurityMessageEncapsulation cmd) {
+    hubitat.zwave.Command encapCmd = cmd.encapsulatedCommand()
     if (encapCmd) {
-		result += zwaveEvent(encapCmd)
+		return zwaveEvent(encapCmd)
     } else {
         log.warn "Unable to extract encapsulated cmd from ${cmd}"
     }
-    return result
 }
 
-def zwaveEvent(hubitat.zwave.Command cmd) {
+void zwaveEvent(hubitat.zwave.Command cmd) {
     log.debug "skip: ${cmd}"
 }
 
@@ -88,7 +97,7 @@ def getVersionReport(){
 	return secureCmd(zwave.versionV1.versionGet())		
 }
 
-def setParameter(parameterNumber = null, size = null, value = null){
+List<String> setParameter(parameterNumber = null, size = null, value = null){
     if (parameterNumber == null || size == null || value == null) {
 		log.warn "incomplete parameter list supplied..."
 		log.info "syntax: setParameter(parameterNumber,size,value)"
@@ -100,29 +109,30 @@ def setParameter(parameterNumber = null, size = null, value = null){
     }
 }
 
-def getAssociationReport(){
-	def cmds = []
+List<String> getAssociationReport(){
+	List<String> cmds = []
 	1.upto(5, {
 		cmds.add(secureCmd(zwave.associationV1.associationGet(groupingIdentifier: it)))
     })
-    return cmds	
+    return delayBetween(cmds,500)	
 }
 
-def getParameterReport(param = null){
-    def cmds = []
-    if (param) {
+List<String> getParameterReport(param = null){
+    List<String> cmds = []
+    if (param != null) {
 		cmds = [secureCmd(zwave.configurationV1.configurationGet(parameterNumber: param))]
     } else {
 		0.upto(255, {
 	    	cmds.add(secureCmd(zwave.configurationV1.configurationGet(parameterNumber: it)))	
 		})
     }
-    return cmds
+    log.trace "configurationGet command(s) sent..."
+    return delayBetween(cmds,500)
 }	
 
-def getCommandClassReport(){
-    def cmds = []
-    def ic = getDataValue("inClusters").split(",").collect{ hexStrToUnsignedInt(it) }
+List<String> getCommandClassReport(){
+    List<String> cmds = []
+    List<Integer> ic = getDataValue("inClusters").split(",").collect{ hexStrToUnsignedInt(it) }
     ic.each {
 		if (it) cmds.add(secureCmd(zwave.versionV1.versionCommandClassGet(requestedCommandClass:it)))
     }
@@ -137,13 +147,13 @@ String secure(hubitat.zwave.Command cmd){
     return zwaveSecureEncap(cmd)
 }
 
-def installed(){}
+void installed(){}
 
-def configure() {}
+void configure() {}
 
-def updated() {}
+void updated() {}
 
-private secureCmd(cmd) {
+String secureCmd(cmd) {
     if (getDataValue("zwaveSecurePairingComplete") == "true" && getDataValue("S2") == null) {
 		return zwave.securityV1.securityMessageEncapsulation().encapsulate(cmd).format()
     } else {
