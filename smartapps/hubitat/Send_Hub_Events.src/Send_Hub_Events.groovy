@@ -40,6 +40,7 @@ def main(){
                 	input "omniSensors", "capability.sensor", title: "Omni Sensors (presence, contact, acceleration, temperature, carbonMonoxide, illuminance, motion, water, smoke)", multiple: true, required: false
             		input "switchDevices", "capability.switch", title: "Switches", multiple: true, required: false
                 	input "dimmerDevices", "capability.switchLevel", title: "Dimmers", multiple: true, required: false
+                    input "buttonDevices", "capability.button", title: "Buttons", multiple: true, required: false
 			input "locks", "capability.lock", title: "Locks", multiple: true, required: false
 			input "modes", "bool", title: "Send mode changes?", required: false
                 	input "logEnable", "bool", title: "Enable debug logging", required: false
@@ -78,10 +79,12 @@ def initialize() {
 	subscribe(omniSensors, "smoke", omniDeviceEvent)
 	subscribe(omniSensors, "humidity", omniDeviceEvent)
 	subscribe(omniSensors, "carbonDioxide", omniDeviceEvent)
+    subscribe(omniSensors, "battery", handleDeviceEvent)
 	subscribe(switchDevices, "switch", handleDeviceEvent)
 	subscribe(dimmerDevices, "switch", handleDeviceEvent)
 	subscribe(dimmerDevices, "level", handleDeviceEvent)
 	subscribe(locks, "lock", handleDeviceEvent)
+    subscribe(buttonDevices, "button", buttonDeviceEvent)
 	if(modes) subscribe(location, modeEvent)
 	sendSetup()
 }
@@ -116,6 +119,24 @@ ${evt.name}:${evt.value}
 	}
 }
 
+def buttonDeviceEvent(evt) {
+def dni = "stHub_${evt?.device?.deviceNetworkId}"
+def button = evt.data.tokenize(':')[1].getAt(0);
+log.debug "Button: ${button}"
+def msg = """POST / HTTP/1.1
+HOST: ${ip}:39501
+CONTENT-TYPE: text/plain
+DEVICE-NETWORK-ID: ${dni}
+CONTENT-LENGTH: ${(evt.value.length() + button.length()+1)}\n
+${evt.value}:${button}
+"""
+	if(enabled) {
+        if (logEnable) log.debug "Name: ${evt.device.displayName}, DNI: ${dni}, name: ${evt.name} value: ${evt.value}:${evt.data[-2]}"
+		sendHubCommand(new physicalgraph.device.HubAction(msg, physicalgraph.device.Protocol.LAN, "${ip}:39501"))
+	}
+}
+
+
 def sendSetup() {
     def thisMsg = ""
     presenceDevices.each {thisMsg = thisMsg + "p\t$it.displayName\tstHub_$it.deviceNetworkId\n"}
@@ -126,6 +147,7 @@ def sendSetup() {
     omniSensors.each {thisMsg = thisMsg + "o\t$it.displayName\tstHub_$it.deviceNetworkId\n"}
     switchDevices.each {thisMsg = thisMsg + "s\t$it.displayName\tstHub_$it.deviceNetworkId\n"}
     dimmerDevices.each {thisMsg = thisMsg + "d\t$it.displayName\tstHub_$it.deviceNetworkId\n"}
+    buttonDevices.each {thisMsg = thisMsg + "b\t$it.displayName\tstHub_$it.deviceNetworkId\n"}
 	locks.each {thisMsg = thisMsg + "l\t$it.displayName\tstHub_$it.deviceNetworkId\n"}
     def dni = "systemHubLink"    
 def msg = """POST / HTTP/1.1
