@@ -121,7 +121,7 @@ ${evt.name}:${evt.value}
 
 def buttonDeviceEvent(evt) {
 def dni = "stHub_${evt?.device?.deviceNetworkId}"
-def button = evt.data.tokenize(':')[1].getAt(0);
+def button = evt.data.getAt(evt.data.indexOf(':') + 1)
 log.debug "Button: ${button}"
 def msg = """POST / HTTP/1.1
 HOST: ${ip}:39501
