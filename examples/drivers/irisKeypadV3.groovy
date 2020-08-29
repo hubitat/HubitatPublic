@@ -20,7 +20,7 @@ import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 
 metadata {
-    definition (name: "Iris V3 Keypad", namespace: "Hubitat", author: "Mike Maxwell") {
+    definition (name: "Iris V3 Keypad Custom", namespace: "Hubitat", author: "Mike Maxwell") {
 
         capability "Battery"
         capability "Configuration"
@@ -44,6 +44,7 @@ metadata {
 
         fingerprint profileId:"0104", inClusters:"0000,0001,0003,0020,0402,0405,0500,0501,0B05,FC01,FC02,FC04", outClusters:"0003,0019,0501", manufacturer:"iMagic by GreatStar", model:"1112-S", deviceJoinName:"Iris V3 Keypad"
         fingerprint profileId:"0104", inClusters:"0000,0001,0003,0020,0402,0405,0500,0501,0B05,FC01,FC02", outClusters:"0003,0019,0501", model:"1112-S", manufacturer:"iMagic by GreatStar", deviceJoinName:"Iris V3 Keypad old firmware"
+fingerprint endpointId: "01", profileId: "0104", deviceId: "0401", inClusters: "0000,0001,0003,0020,0500,0B05", outClusters: "0003,0019,0501", manufacturer: "lk", model: "ZB-KeypadGeneric-D0002", deviceJoinName: "Linkind Keypad"        
 
     }
 
@@ -114,7 +115,9 @@ def parse(String description) {
                     resp.addAll(sendArmResponse(armRequest,isValidPin(asciiPin, armRequest)))
 
                 } else if (cmd == "04") { //panic client -> server
+                    log.debug "Panic button pushed"
                     resp.addAll(siren())
+                    resp.addAll(sendPanelResponse(false))
                 } else {
                     if (logEnable) log.info "0501 skipped: ${descMap}"
                 }
@@ -414,7 +417,7 @@ private isValidPin(code, armRequest){
 
 private togglePanic(){
     def panicState = state.panic ?: "inactive"
-    if (panicState == "inactive"){
+    if (State == "inactive"){
         siren()
     } else {
         off()
