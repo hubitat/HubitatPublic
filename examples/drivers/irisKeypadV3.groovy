@@ -426,7 +426,7 @@ private isValidPin(code, armRequest){
 
 private togglePanic(){
     def panicState = state.panic ?: "inactive"
-    if (State == "inactive"){
+    if (panicState == "inactive"){
         siren()
     } else {
         off()
