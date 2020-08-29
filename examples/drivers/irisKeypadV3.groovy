@@ -33,18 +33,24 @@ metadata {
         capability "Alarm"
         capability "Tone"
 
+        capability "PushableButton"
+		capability "DoubleTapableButton"
+		capability "HoldableButton"
+		capability "Momentary"
+
         command "armNight"
         command "setArmNightDelay", ["number"]
         command "setArmHomeDelay", ["number"]
         command "entry" //fired from HSM on system entry
         command "setPartialFunction"
+        command "push"
 
         attribute "armingIn", "NUMBER"
         attribute "lastCodeName", "STRING"
 
         fingerprint profileId:"0104", inClusters:"0000,0001,0003,0020,0402,0405,0500,0501,0B05,FC01,FC02,FC04", outClusters:"0003,0019,0501", manufacturer:"iMagic by GreatStar", model:"1112-S", deviceJoinName:"Iris V3 Keypad"
         fingerprint profileId:"0104", inClusters:"0000,0001,0003,0020,0402,0405,0500,0501,0B05,FC01,FC02", outClusters:"0003,0019,0501", model:"1112-S", manufacturer:"iMagic by GreatStar", deviceJoinName:"Iris V3 Keypad old firmware"
-fingerprint endpointId: "01", profileId: "0104", deviceId: "0401", inClusters: "0000,0001,0003,0020,0500,0B05", outClusters: "0003,0019,0501", manufacturer: "lk", model: "ZB-KeypadGeneric-D0002", deviceJoinName: "Linkind Keypad"        
+	fingerprint endpointId: "01", profileId: "0104", deviceId: "0401", inClusters: "0000,0001,0003,0020,0500,0B05", outClusters: "0003,0019,0501", manufacturer: "lk", model: "ZB-KeypadGeneric-D0002", deviceJoinName: "Linkind Keypad"        
 
     }
 
@@ -116,8 +122,11 @@ def parse(String description) {
 
                 } else if (cmd == "04") { //panic client -> server
                     log.debug "Panic button pushed"
-                    resp.addAll(siren())
-                    resp.addAll(sendPanelResponse(false))
+                    push()
+//                    resp.addAll(off())
+//                    resp.addAll(siren())
+//                    resp.addAll(sendPanelResponse(false))
+                    clearPending()
                 } else {
                     if (logEnable) log.info "0501 skipped: ${descMap}"
                 }
@@ -693,6 +702,7 @@ def configure() {
             "he cr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0001 0x0020 0x20 1 86400 {01}","delay 200",//battery
             "he cr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0402 0x0000 0x29 60 0xFFFE {3200}", "delay 500" //temp
     ] + refresh()
+   	sendEvent(name: "numberOfButtons", value: 1)
     return cmd
 }
 
@@ -701,4 +711,26 @@ def refresh() {
             "he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0001 0x0020 {}","delay 200",  //battery
             "he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0402 0 {}","delay 200",  //temp
     ] + sendPanelResponse(false)
+}
+
+def push() {
+        log.debug "push"
+        def descriptionText = "${device.displayName} button is pushed"
+        def value = 1
+        //sendEvent(name: "pushed", value: 1,	isStateChange  : true,  descriptionText:"${descriptionText}")
+        sendNonDuplicateEvent("pushed")
+}
+
+
+def sendNonDuplicateEvent(eventType) {
+   
+    if(eventType){
+		def rejectTime = 60000
+		
+		def recentEvents = device.eventsSince(new Date(now() - rejectTime)).findAll{it.name == eventType}
+        log.debug "Duplicate event rejected: ${recentEvents.size}"
+        if(recentEvents.size == 0) {
+     		sendEvent( [ name: eventType, value: 1, isStateChange: true, descriptionText: "Button was $eventType" ])
+		}
+    }
 }
