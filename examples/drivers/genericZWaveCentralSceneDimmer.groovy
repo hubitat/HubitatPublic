@@ -49,7 +49,7 @@ metadata {
         capability "DoubleTapableButton"
         capability "Refresh"
 
-	command "flash"
+        command "flash"
         command "refresh"
         command "push", ["NUMBER"]
         command "hold", ["NUMBER"]
