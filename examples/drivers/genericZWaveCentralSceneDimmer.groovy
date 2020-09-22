@@ -47,6 +47,7 @@ metadata {
         capability "HoldableButton"
         capability "ReleasableButton"
         capability "DoubleTapableButton"
+	capability "Refresh"
 
         command "flash"
         command "refresh"
