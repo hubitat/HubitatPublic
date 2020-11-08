@@ -312,25 +312,31 @@ List<String> setLevel(level,ramp){
     Integer delay = (ramp * 1000) + 250
     if (level > 99) level = 99
     
+	List<String> cmds = []
+    
 	if (state.switchMultilevelVersion > 1)
 	{
 	log.info "Sending using Version 2"
-		return [
-				secure(zwave.switchMultilevelV2.switchMultilevelSet(value: level, dimmingDuration: ramp))
-				,"delay ${delay}"
-				,secure(zwave.basicV1.basicGet())
-		]
+		
+		cmds.add(secure(zwave.switchMultilevelV2.switchMultilevelSet(value: level, dimmingDuration: ramp)))
+		cmds.add("delay ${delay}")
+		cmds.add(secure(zwave.basicV1.basicGet()))
+		
+		if(cmds) return cmds
 	}
 	else
 	{
 		log.info "Sending using Version 1"
-		return [
-				secure(zwave.configurationV1.configurationSet(scaledConfigurationValue:  ramp, parameterNumber: 8, size: 2))
-				,"delay 250"
-				,secure(zwave.switchMultilevelV1.switchMultilevelSet(value: level))
-				,"delay ${state.remoteRampTime + 250}"
-				,secure(zwave.basicV1.basicGet())
-		]
+		
+		log.info "Sending using Version 1"
+		cmds.add(secure(zwave.configurationV1.configurationSet(scaledConfigurationValue:  ramp, parameterNumber: 8, size: 2)))
+		cmds.add("delay 250")
+		cmds.add(secure(zwave.switchMultilevelV2.switchMultilevelSet(value: level, dimmingDuration: ramp)))
+		cmds.add("delay ${delay}")
+		cmds.add(secure(zwave.basicV1.basicGet()))
+		
+		if(cmds) return cmds		
+		
 	}
 }
 
