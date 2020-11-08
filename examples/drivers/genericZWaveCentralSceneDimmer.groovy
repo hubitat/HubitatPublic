@@ -316,7 +316,7 @@ List<String> setLevel(level,ramp){
     
 	if (state.switchMultilevelVersion > 1)
 	{
-	log.info "Sending using Version 2"
+        log.info "Sending value ${level} with delay ${ramp * 1000} mSec using switchMultilevel Version 2"
 		
 		cmds.add(secure(zwave.switchMultilevelV2.switchMultilevelSet(value: level, dimmingDuration: ramp)))
 		cmds.add("delay ${delay}")
@@ -326,7 +326,7 @@ List<String> setLevel(level,ramp){
 	}
 	else
 	{
-		log.info "Sending using Version 1"
+		log.info "Sending value ${level} with default ramp delay ${state.remoteRampTime} mSec using switchMultilevel Version 1"
 		
 		// cmds.add(secure(zwave.configurationV1.configurationSet(scaledConfigurationValue:  ramp, parameterNumber: 8, size: 2)))
 		// cmds.add("delay 250")
