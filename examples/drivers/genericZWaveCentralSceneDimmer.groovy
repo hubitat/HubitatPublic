@@ -326,7 +326,7 @@ List<String> setLevel(level,ramp){
 	}
 	else
 	{
-		log.info "Sending using Version 2"
+		log.info "Sending using Version 1"
 		
 		// cmds.add(secure(zwave.configurationV1.configurationSet(scaledConfigurationValue:  ramp, parameterNumber: 8, size: 2)))
 		// cmds.add("delay 250")
