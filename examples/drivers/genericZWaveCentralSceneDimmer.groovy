@@ -139,11 +139,11 @@ void zwaveEvent(hubitat.zwave.commands.configurationv1.ConfigurationReport cmd) 
 	}
 	if (state.parameter7 && state.parameter8)
 	{
-	state.remoteRampTime = Math.round(state.parameter7 * 1000 / state.parameter8 )
+	state.remoteRampTime = Math.round(state.parameter8 * 1000 / state.parameter7 )
 	}
 	if (state.parameter9 && state.parameter10)
 	{
-	state.localRampTime = Math.round(state.parameter9 * 1000 / state.parameter10)
+	state.localRampTime = Math.round(state.parameter10 * 1000 / state.parameter9)
 	}
 	
 }
