@@ -2,6 +2,7 @@
 	Generic Z-Wave CentralScene Dimmer
 
 	Copyright 2016 -> 2020 Hubitat Inc.  All Rights Reserved
+	2020-11-08  2.2.4 jvm - switched to using multilevel set v2 if a device supports it. More accurately calculates ramp delay parameters.
 	2020--07-31 2.2.3 maxwell
 	    -switch to internal secure encap method
 	2020-06-01 2.2.1 bcopeland
