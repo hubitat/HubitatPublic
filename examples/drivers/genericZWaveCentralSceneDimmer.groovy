@@ -29,15 +29,16 @@ import groovy.transform.Field
 
 @Field static Map commandClassVersions = [
         0x20: 1     //basic
-        ,0x26: 1    //switchMultiLevel
+        ,0x26: 3    //switchMultiLevel
         ,0x5B: 1    //centralScene
+        ,0x70: 1    //configuration get
 ]
 @Field static Map switchVerbs = [0:"was turned",1:"is"]
 @Field static Map levelVerbs = [0:"was set to",1:"is"]
 @Field static Map switchValues = [0:"off",1:"on"]
 
 metadata {
-    definition (name: "Generic Z-Wave CentralScene Dimmer",namespace: "hubitat", author: "Mike Maxwell") {
+    definition (name: "Modified Generic Z-Wave CentralScene Dimmer",namespace: "hubitat", author: "Mike Maxwell") {
         capability "Actuator"
         capability "Switch"
         capability "Switch Level"
@@ -54,6 +55,7 @@ metadata {
         command "hold", ["NUMBER"]
         command "release", ["NUMBER"]
         command "doubleTap", ["NUMBER"]
+
 
         fingerprint deviceId: "3034", inClusters: "0x5E,0x86,0x72,0x5A,0x85,0x59,0x73,0x26,0x27,0x70,0x2C,0x2B,0x5B,0x7A", outClusters: "0x5B", mfr: "0315", prod: "4447", deviceJoinName: "ZWP WD-100 Dimmer"
         fingerprint deviceId: "3034", inClusters: "0x5E,0x86,0x72,0x5A,0x85,0x59,0x55,0x73,0x26,0x70,0x2C,0x2B,0x5B,0x7A,0x9F,0x6C", outClusters: "0x5B", mfr: "0315", prod: "4447", deviceJoinName: "ZLINK ZL-WD-100"
@@ -73,6 +75,8 @@ metadata {
         input name: "txtEnable", type: "bool", title: "Enable descriptionText logging", defaultValue: true
     }
 }
+
+
 
 void logsOff(){
     log.warn "debug logging disabled..."
@@ -116,11 +120,51 @@ List<String> stopLevelChange(){
     ]
 }
 
-//returns on physical
+void zwaveEvent(hubitat.zwave.commands.configurationv1.ConfigurationReport cmd) {
+    switch(cmd.parameterNumber)
+	{
+	case 7:
+		state.parameter7 = cmd.scaledConfigurationValue
+		break
+	case 8:
+		state.parameter8 = cmd.scaledConfigurationValue
+		break
+	case 9:
+		state.parameter9 = cmd.scaledConfigurationValue
+		break
+	case 10:
+		state.parameter10 = cmd.scaledConfigurationValue
+		break	
+	}
+	if (state.parameter7 && state.parameter8)
+	{
+	state.remoteRampTime = Math.round(state.parameter7 * 1000 / state.parameter8 )
+	}
+	if (state.parameter9 && state.parameter10)
+	{
+	state.localRampTime = Math.round(state.parameter9 * 1000 / state.parameter10)
+	}
+	
+}
+
+//returns on physical v1
 void zwaveEvent(hubitat.zwave.commands.switchmultilevelv1.SwitchMultilevelReport cmd){
-    if (logEnable) log.debug "SwitchMultilevelReport value: ${cmd.value}"
+    if (logEnable) log.debug "SwitchMultilevelV1Report value: ${cmd.value}"
     dimmerEvents(cmd.value,"physical")
 }
+
+//returns on physical v2
+void zwaveEvent(hubitat.zwave.commands.switchmultilevelv2.SwitchMultilevelReport cmd){
+    if (logEnable) log.debug "SwitchMultilevelV2Report value: ${cmd.value}"
+    dimmerEvents(cmd.value,"physical")
+}
+
+//returns on physical v3
+void zwaveEvent(hubitat.zwave.commands.switchmultilevelv3.SwitchMultilevelReport cmd){
+    if (logEnable) log.debug "SwitchMultilevelV3Report value: ${cmd.value}"
+    dimmerEvents(cmd.value,"physical")
+}
+
 
 //returns on digital
 void zwaveEvent(hubitat.zwave.commands.basicv1.BasicReport cmd){
@@ -255,24 +299,38 @@ void sendButtonEvent(action, button, type){
 }
 
 List<String> setLevel(level){
-    return setLevel(level,1)
+    return setLevel(level,3)
 }
 
 List<String> setLevel(level,ramp){
     state.flashing = false
     state.bin = level
-    if (ramp > 255) ramp = 255
-    else if (ramp == 0) ramp = 1
-    Integer delay = (ramp * 1000) + 200
+	// Values greater than 127 need a special encoding, so simplify with use of 127
+    if (ramp > 127) ramp = 127
+    // else if (ramp == 0) ramp = 3
+    Integer delay = (ramp * 1000) + 250
     if (level > 99) level = 99
-
-    return [
-            secure(zwave.configurationV1.configurationSet(scaledConfigurationValue:  ramp, parameterNumber: 8, size: 2))
-            ,"delay 200"
-            ,secure(zwave.switchMultilevelV1.switchMultilevelSet(value: level))
-            ,"delay ${delay}"
-            ,secure(zwave.basicV1.basicGet())
-    ]
+    
+	if (state.switchMultilevelVersion > 1)
+	{
+	log.info "Sending using Version 2"
+		return [
+				secure(zwave.switchMultilevelV2.switchMultilevelSet(value: level, dimmingDuration: ramp))
+				,"delay ${delay}"
+				,secure(zwave.basicV1.basicGet())
+		]
+	}
+	else
+	{
+		log.info "Sending using Version 1"
+		return [
+				secure(zwave.configurationV1.configurationSet(scaledConfigurationValue:  ramp, parameterNumber: 8, size: 2))
+				,"delay 250"
+				,secure(zwave.switchMultilevelV1.switchMultilevelSet(value: level))
+				,"delay ${state.remoteRampTime + 250}"
+				,secure(zwave.basicV1.basicGet())
+		]
+	}
 }
 
 
@@ -282,7 +340,7 @@ List<String> on(){
     return delayBetween([
             secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0xFF))
             ,secure(zwave.basicV1.basicGet())
-    ] ,200)
+    ] , state.remoteRampTime + 250)
 }
 
 List<String> off(){
@@ -291,7 +349,7 @@ List<String> off(){
     return delayBetween([
             secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0x00))
             ,secure(zwave.basicV1.basicGet())
-    ] ,200)
+    ] , state.remoteRampTime + 250)
 }
 
 String flash(){
@@ -318,18 +376,80 @@ String refresh(){
     return secure(zwave.basicV1.basicGet())
 }
 
-void installed(){
+List<String>   installed(){
     log.warn "installed..."
     sendEvent(name: "level", value: 20)
+	
+
+    List<String> cmds = []
+	// Get Switch Multilevel Version Note: command 0x26 = 38
+    cmds.add(secure(zwave.versionV1.versionCommandClassGet(requestedCommandClass:38)))
+	
+	// Command Class Central Scene
+    cmds.add(secure(zwave.versionV1.versionCommandClassGet(requestedCommandClass:91)))
+	
+	// Remote Ramp Rate Steps
+	cmds.add(secure(zwave.configurationV1.configurationGet(parameterNumber: 7)))
+	
+	// Remote Ramp Rate Speed
+	cmds.add(secure(zwave.configurationV1.configurationGet(parameterNumber: 8)))
+	
+	// local Ramp Rate Steps
+	cmds.add(secure(zwave.configurationV1.configurationGet(parameterNumber: 9)))
+	
+	// local Ramp Rate Speed
+	cmds.add(secure(zwave.configurationV1.configurationGet(parameterNumber: 10)))   	
+    if (cmds) return cmds
+
 }
 
-void configure(){
-    log.warn "configure..."
+
+// Command class report - only really intersted in the multiLevelVersion report!
+// Maybe expand to also include central scene report!
+void zwaveEvent(hubitat.zwave.commands.versionv1.VersionCommandClassReport cmd) {
+    log.info "CommandClassReport- class:${ "0x${intToHexStr(cmd.requestedCommandClass)}" }, version:${cmd.commandClassVersion}"	
+    
+    if (cmd.requestedCommandClass == 38)
+    {
+        log.info "got the version report and the MultiLevel Command Class Version is ${cmd.commandClassVersion}!"
+        state.switchMultilevelVersion = cmd.commandClassVersion
+    }
+    if (cmd.requestedCommandClass == 91)
+    {
+        log.info "got the version report and the Central Scene Command Class Version is ${cmd.commandClassVersion}!"
+        state.centralSceneVersion = cmd.commandClassVersion
+    }	
+	
+}	
+
+
+List<String>  configure(){
+    log.warn "configuring Jim's custom driver..."
     runIn(1800,logsOff)
     sendEvent(name: "numberOfButtons", value: 2)
     state."${1}" = 0
     state."${2}" = 0
     runIn(5, "refresh")
+    
+    List<String> cmds = []
+	// Get Switch Multilevel Version Note: command 0x26 = 38
+    cmds.add(secure(zwave.versionV1.versionCommandClassGet(requestedCommandClass:38)))
+	
+	// Command Class Central Scene
+    cmds.add(secure(zwave.versionV1.versionCommandClassGet(requestedCommandClass:91)))
+	
+	// Remote Ramp Rate Steps
+	cmds.add(secure(zwave.configurationV1.configurationGet(parameterNumber: 7)))
+	
+	// Remote Ramp Rate Speed
+	cmds.add(secure(zwave.configurationV1.configurationGet(parameterNumber: 8)))     
+	
+	// local Ramp Rate Steps
+	cmds.add(secure(zwave.configurationV1.configurationGet(parameterNumber: 9)))
+	
+	// local Ramp Rate Speed
+	cmds.add(secure(zwave.configurationV1.configurationGet(parameterNumber: 10)))   	
+    if (cmds) return cmds
 }
 
 //capture preference changes
@@ -345,5 +465,23 @@ List<String> updated(){
     if (param4) {
         cmds.add(secure(zwave.configurationV1.configurationSet(scaledConfigurationValue: param4.toInteger(), parameterNumber: 4, size: 1)))
     }
+	// Get Switch Multilevel Version Note: command 0x26 = 38
+    cmds.add(secure(zwave.versionV1.versionCommandClassGet(requestedCommandClass:38)))
+	
+	// Command Class Central Scene
+    cmds.add(secure(zwave.versionV1.versionCommandClassGet(requestedCommandClass:91)))
+	
+	// Remote Ramp Rate Steps
+	cmds.add(secure(zwave.configurationV1.configurationGet(parameterNumber: 7)))
+	
+	// Remote Ramp Rate Speed
+	cmds.add(secure(zwave.configurationV1.configurationGet(parameterNumber: 8))) 
+	
+	// local Ramp Rate Steps
+	cmds.add(secure(zwave.configurationV1.configurationGet(parameterNumber: 9)))
+	
+	// local Ramp Rate Speed
+	cmds.add(secure(zwave.configurationV1.configurationGet(parameterNumber: 10)))   	
+
     if (cmds) return cmds
 }
