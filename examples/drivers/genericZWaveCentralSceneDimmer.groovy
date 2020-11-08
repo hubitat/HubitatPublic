@@ -326,12 +326,11 @@ List<String> setLevel(level,ramp){
 	}
 	else
 	{
-		log.info "Sending using Version 1"
+		log.info "Sending using Version 2"
 		
-		log.info "Sending using Version 1"
-		cmds.add(secure(zwave.configurationV1.configurationSet(scaledConfigurationValue:  ramp, parameterNumber: 8, size: 2)))
-		cmds.add("delay 250")
-		cmds.add(secure(zwave.switchMultilevelV2.switchMultilevelSet(value: level, dimmingDuration: ramp)))
+		// cmds.add(secure(zwave.configurationV1.configurationSet(scaledConfigurationValue:  ramp, parameterNumber: 8, size: 2)))
+		// cmds.add("delay 250")
+		cmds.add(secure(zwave.switchMultilevelV1.switchMultilevelSet(value: level)))
 		cmds.add("delay ${delay}")
 		cmds.add(secure(zwave.basicV1.basicGet()))
 		
