@@ -430,7 +430,7 @@ void zwaveEvent(hubitat.zwave.commands.versionv1.VersionCommandClassReport cmd) 
 
 
 List<String>  configure(){
-    log.warn "configuring Jim's custom driver..."
+    log.warn "configuring custom  Zwave Central Scene Dimmer Driver ..."
     runIn(1800,logsOff)
     sendEvent(name: "numberOfButtons", value: 2)
     state."${1}" = 0
