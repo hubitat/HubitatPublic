@@ -346,7 +346,7 @@ List<String> on(){
     return delayBetween([
             secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0xFF))
             ,secure(zwave.basicV1.basicGet())
-    ] , state.remoteRampTime + 250)
+    ] , (state.remoteRampTime ?: 3000) + 250)
 }
 
 List<String> off(){
@@ -355,7 +355,7 @@ List<String> off(){
     return delayBetween([
             secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0x00))
             ,secure(zwave.basicV1.basicGet())
-    ] , state.remoteRampTime + 250)
+    ] , (state.remoteRampTime ?: 3000) + 250)
 }
 
 String flash(){
