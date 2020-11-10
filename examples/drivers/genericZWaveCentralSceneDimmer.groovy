@@ -143,15 +143,15 @@ void zwaveEvent(hubitat.zwave.commands.configurationv1.ConfigurationReport cmd) 
     if (state.parameters == undefined) state.parameters = [:]
     
     state.parameters.put(cmd.parameterNumber, cmd.scaledConfigurationValue)
-    
-	if (state.parameters.get(7) && state.parameters.get(8))
-	{
-	state.remoteRampTime = Math.round( (state.parameters.get(8) ?: 1)  * 1000 / (state.parameters.get(7) ?: 1) )
-	}
-	if (state.parameters.get(9) && state.parameters.get(10))
-	{
-	state.localRampTime = Math.round((state.parameters.get(10) ?: 1) * 1000 / (state.parameters.get(9) ?: 1))
-	}
+ 
+
+	state.remoteRampTime = Math.round( (state.parameters.get('8') ?: 3)  * 1000 / (state.parameters.get('7') ?: 1))
+	state.localRampTime = Math.round((state.parameters.get('10') ?: 3) * 1000 / (state.parameters.get('9') ?: 1))
+
+	if(logEnable) log.debug "Parameters 7 is ${state.parameters.get('7')}, 8 is ${state.parameters.get('8')}, 9 is ${state.parameters.get('9')}, 10 is ${state.parameters.get('10')}"
+	
+	if(logEnable) log.debug "Remote ramp time calculated as ${state.remoteRampTime} and local ramp time calculated as ${state.localRampTime}"
+
 	
 }
 
@@ -327,7 +327,7 @@ List<String> setLevel(level,ramp){
     
 	List<String> cmds = []
     
-	if (state.commandVersions.get(38) > 1)
+	if (state.commandVersions.get('38') > 1)
 	{
         log.info "Sending value ${level} with delay ${ramp * 1000} mSec using switchMultilevel Version 2"
 		
