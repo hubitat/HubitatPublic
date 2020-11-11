@@ -2,7 +2,7 @@
 	Generic Z-Wave CentralScene Dimmer
 
 	Copyright 2016 -> 2020 Hubitat Inc.  All Rights Reserved
-	2020-11-08  2.2.4 jvm - switched to using multilevel set v2 if a device supports it. More accurately calculates ramp delay parameters.
+	2020-11-08  2.2.4 jvm - switched to using multilevel set v2 if a device supports it. More accurately calculates ramp delay parameters. Removed support for non-plus devices (they can use the default Hubitat drivers!)
 	2020--07-31 2.2.3 maxwell
 	    -switch to internal secure encap method
 	2020-06-01 2.2.1 bcopeland
@@ -33,7 +33,7 @@ import groovy.transform.Field
         ,0x26: 3    //switchMultiLevel
         ,0x5B: 1    //centralScene
         ,0x70: 1    //configuration get
-		,0x86: 1	// Version get
+		,0x86: 2	// Version get
 ]
 @Field static Map switchVerbs = [0:"was turned",1:"is"]
 @Field static Map levelVerbs = [0:"was set to",1:"is"]
@@ -57,7 +57,6 @@ metadata {
         command "hold", ["NUMBER"]
         command "release", ["NUMBER"]
         command "doubleTap", ["NUMBER"]
-		
 										
 		command "setParameter",[[name:"parameterNumber",type:"NUMBER", description:"Parameter Number", constraints:["NUMBER"]],
 							[name:"size",type:"NUMBER", description:"Parameter Size", constraints:["NUMBER"]],
@@ -66,14 +65,9 @@ metadata {
 										
 
         fingerprint deviceId: "3034", inClusters: "0x5E,0x86,0x72,0x5A,0x85,0x59,0x73,0x26,0x27,0x70,0x2C,0x2B,0x5B,0x7A", outClusters: "0x5B", mfr: "0315", prod: "4447", deviceJoinName: "ZWP WD-100 Dimmer"
-        fingerprint deviceId: "3034", inClusters: "0x5E,0x86,0x72,0x5A,0x85,0x59,0x55,0x73,0x26,0x70,0x2C,0x2B,0x5B,0x7A,0x9F,0x6C", outClusters: "0x5B", mfr: "0315", prod: "4447", deviceJoinName: "ZLINK ZL-WD-100"
-        fingerprint deviceId: "0209", inClusters: "0x26,0x27,0x2B,0x2C,0x85,0x72,0x86,0x91,0x77,0x73", outClusters: "0x82", mfr: "001D", prod: "0401", deviceJoinName: "Leviton VRI06-1LZ"
-        fingerprint deviceId: "0209", inClusters: "0x25,0x27,0x2B,0x2C,0x85,0x72,0x86,0x91,0x77,0x73", outClusters: "0x82", mfr: "001D", prod: "0301", deviceJoinName: "Leviton VRI10-1LZ"
-        fingerprint deviceId: "0209", inClusters: "0x26,0x27,0x2B,0x2C,0x85,0x72,0x86,0x91,0x77,0x73", outClusters: "0x82", mfr: "001D", prod: "0501", deviceJoinName: "Leviton ???"
-        fingerprint deviceId: "0334", inClusters: "0x26,0x27,0x2B,0x2C,0x85,0x72,0x86,0x91,0x77,0x73", outClusters: "0x82", mfr: "001D", prod: "0602", deviceJoinName: "Leviton ???"
-        fingerprint deviceId: "0001", inClusters: "0x5E,0x85,0x59,0x86,0x72,0x70,0x5A,0x73,0x26,0x20,0x27,0x2C,0x2B,0x7A", outClusters: "0x82", mfr: "001D", prod: "3501", deviceJoinName: "Leviton DZPD3-2BW"
-        fingerprint deviceId: "3034", inClusters: "0x5E,0x55,0x86,0x9F", outClusters: "0x5B", mfr: "000C", prod: "4447", deviceJoinName: "Homeseer HS-WD100+"
-        fingerprint deviceId: "3034", inClusters: "0x5E,0x86,0x72,0x5A,0x85,0x86,0x59,0x55,0x73,0x26,0x70,0x2C,0x2B,0x5B,0x7A,0x9F,0x6C", outClusters: "0x5B", mfr: "000C", prod: "4447", deviceJoinName: "Homeseer HS-WD100+"
+        fingerprint deviceId: "3034", inClusters: "0x26,0x2B,0x2C,0x55,0x59,0x5A,0x5B,0x5E,0x6C,0x70,0x72,0x73,0x7A,0x85,0x86,0x9F", outClusters: "0x5B", mfr: "0315", prod: "4447", deviceJoinName: "ZLINK ZL-WD-100"
+		fingerprint deviceId: "3034", inClusters: "0x26,0x2B,0x2C,0x55,0x59,0x5A,0x5B,0x5E,0x6C,0x70,0x72,0x73,0x7A,0x85,0x86,0x9F", outClusters: "0x5B", mfr: "000C", prod: "4447", deviceJoinName: "Homeseer HS-WD100+"
+
     }
 
     preferences {
@@ -96,6 +90,18 @@ List<String> setParameter(parameterNumber = null, size = null, value = null){
 		],500)
     }
 }
+
+//Z-Wave responses
+void zwaveEvent(hubitat.zwave.commands.versionv2.VersionReport cmd) {
+log.info "Firmware Version Report is: ${cmd}"
+
+state.fwVersion = cmd
+
+}
+//cmds
+
+
+
 void logsOff(){
     log.warn "debug logging disabled..."
     device.updateSetting("logEnable",[value:"false",type:"bool"])
@@ -182,7 +188,7 @@ void zwaveEvent(hubitat.zwave.commands.basicv1.BasicReport cmd){
 
 //returns on digital v2
 void zwaveEvent(hubitat.zwave.commands.basicv2.BasicReport cmd){
-    if (logEnable) log.info "BasicReport V2 target value: ${cmd.targetValue}"
+    if (logEnable) log.info "BasicReport V2 value is: ${cmd.value} and target value is: ${cmd.targetValue}"
     dimmerEvents(cmd.targetValue,"digital")
 }
 
@@ -332,7 +338,8 @@ List<String> setLevel(level,ramp){
         log.info "Sending value ${level} with delay ${ramp * 1000} mSec using switchMultilevel Version 2"
 		
 		cmds.add(secure(zwave.switchMultilevelV2.switchMultilevelSet(value: level, dimmingDuration: ramp)))
-		cmds.add("delay ${delay}")
+		// Switches supporting version 2 report using BasicReportv2 so no need to add delay as processing can use target value!
+		// cmds.add("delay ${delay}")
 		cmds.add(secure(zwave.basicV1.basicGet()))
 		
 		if(cmds) return cmds
@@ -400,21 +407,17 @@ void zwaveEvent(hubitat.zwave.commands.versionv1.VersionReport  cmd) {
 	state.versionReport = cmd
 	}
 	
-List<String>   getCommandClassInfo(){
+List<String>   getDeviceInfo(){
 	def cmds = [];
+	
+	List<Integer> ic = getDataValue("inClusters").split(",").collect{ hexStrToUnsignedInt(it) }
+    ic.each {
+		if (it) cmds.add(secure(zwave.versionV1.versionCommandClassGet(requestedCommandClass:it)))
+    }
 
-	// Get Basic Version Information - This appears to be broken!
-    // cmds.add(secure(zwave.versionV1.VersionGet()))
-	
-	// Get BasicReport Version Note: command 0x20 = 32
-    cmds.add(secure(zwave.versionV1.versionCommandClassGet(requestedCommandClass:32)))
-	
-	// Get Switch Multilevel Version Note: command 0x26 = 38
-    cmds.add(secure(zwave.versionV1.versionCommandClassGet(requestedCommandClass:38)))
-	
-	// Command Class Central Scene
-    cmds.add(secure(zwave.versionV1.versionCommandClassGet(requestedCommandClass:91)))
-	
+	// Software Version
+	cmds.add(secure(zwave.versionV1.versionGet()))
+
 	// Toggle Switch Orientation
 	cmds.add(secure(zwave.configurationV1.configurationGet(parameterNumber: 4)))
 	
@@ -440,7 +443,7 @@ List<String>   installed(){
 
     List<String> cmds = []
 		
-	cmds = getCommandClassInfo()
+	cmds = getDeviceInfo()
 	
 	
     if (cmds) return cmds
@@ -452,21 +455,6 @@ List<String>   installed(){
 // Maybe expand to also include central scene report!
 void zwaveEvent(hubitat.zwave.commands.versionv1.VersionCommandClassReport cmd) {
     log.info "CommandClassReport- class:${ "0x${intToHexStr(cmd.requestedCommandClass)}" }, version:${cmd.commandClassVersion}"	
-    if (cmd.requestedCommandClass == 32)
-    {
-        log.info "got the version report and the Basic Command Class Version is ${cmd.commandClassVersion}!"
-        state.basicVersion = cmd.commandClassVersion
-    }    
-    if (cmd.requestedCommandClass == 38)
-    {
-        log.info "got the version report and the MultiLevel Command Class Version is ${cmd.commandClassVersion}!"
-        state.switchMultilevelVersion = cmd.commandClassVersion
-    }
-    if (cmd.requestedCommandClass == 91)
-    {
-        log.info "got the version report and the Central Scene Command Class Version is ${cmd.commandClassVersion}!"
-
-    }	
 
     if (state.commandVersions == undefined) state.commandVersions = [:]
     
@@ -478,14 +466,18 @@ void zwaveEvent(hubitat.zwave.commands.versionv1.VersionCommandClassReport cmd) 
 List<String>  configure(){
     log.warn "configuring custom  Zwave Central Scene Dimmer Driver ..."
     runIn(1800,logsOff)
+	
+	// Clean up some state values from old versions of this update. 
+        state.remove("basicVersion")
+        state.remove("switchMultilevelVersion")
+		
     sendEvent(name: "numberOfButtons", value: 2)
     state."${1}" = 0
     state."${2}" = 0
     runIn(5, "refresh")
     
     List<String> cmds = []
-	
-	cmds = getCommandClassInfo()
+		cmds = getDeviceInfo()
     if (cmds) return cmds
 }
 
@@ -498,7 +490,7 @@ List<String> updated(){
 
     List<String> cmds = []
 	
-	cmds = getCommandClassInfo()
+	cmds = getDeviceInfo()
 	
     //paddle reverse function
     if (param4) {
