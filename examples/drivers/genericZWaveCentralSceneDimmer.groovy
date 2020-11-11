@@ -33,7 +33,7 @@ import groovy.transform.Field
         ,0x26: 3    //switchMultiLevel
         ,0x5B: 1    //centralScene
         ,0x70: 1    //configuration get
-		,0x86: 2	// Version get
+	,0x86: 2	// Version get
 ]
 @Field static Map switchVerbs = [0:"was turned",1:"is"]
 @Field static Map levelVerbs = [0:"was set to",1:"is"]
@@ -58,15 +58,15 @@ metadata {
         command "release", ["NUMBER"]
         command "doubleTap", ["NUMBER"]
 										
-		command "setParameter",[[name:"parameterNumber",type:"NUMBER", description:"Parameter Number", constraints:["NUMBER"]],
-							[name:"size",type:"NUMBER", description:"Parameter Size", constraints:["NUMBER"]],
-							[name:"value",type:"NUMBER", description:"Parameter Value", constraints:["NUMBER"]]
-							]
+	command "setParameter",[[name:"parameterNumber",type:"NUMBER", description:"Parameter Number", constraints:["NUMBER"]],
+				[name:"size",type:"NUMBER", description:"Parameter Size", constraints:["NUMBER"]],
+				[name:"value",type:"NUMBER", description:"Parameter Value", constraints:["NUMBER"]]
+				]
 										
 
         fingerprint deviceId: "3034", inClusters: "0x5E,0x86,0x72,0x5A,0x85,0x59,0x73,0x26,0x27,0x70,0x2C,0x2B,0x5B,0x7A", outClusters: "0x5B", mfr: "0315", prod: "4447", deviceJoinName: "ZWP WD-100 Dimmer"
         fingerprint deviceId: "3034", inClusters: "0x26,0x2B,0x2C,0x55,0x59,0x5A,0x5B,0x5E,0x6C,0x70,0x72,0x73,0x7A,0x85,0x86,0x9F", outClusters: "0x5B", mfr: "0315", prod: "4447", deviceJoinName: "ZLINK ZL-WD-100"
-		fingerprint deviceId: "3034", inClusters: "0x26,0x2B,0x2C,0x55,0x59,0x5A,0x5B,0x5E,0x6C,0x70,0x72,0x73,0x7A,0x85,0x86,0x9F", outClusters: "0x5B", mfr: "000C", prod: "4447", deviceJoinName: "Homeseer HS-WD100+"
+	fingerprint deviceId: "3034", inClusters: "0x26,0x2B,0x2C,0x55,0x59,0x5A,0x5B,0x5E,0x6C,0x70,0x72,0x73,0x7A,0x85,0x86,0x9F", outClusters: "0x5B", mfr: "000C", prod: "4447", deviceJoinName: "Homeseer HS-WD100+"
 
     }
 
@@ -93,14 +93,10 @@ List<String> setParameter(parameterNumber = null, size = null, value = null){
 
 //Z-Wave responses
 void zwaveEvent(hubitat.zwave.commands.versionv2.VersionReport cmd) {
-log.info "Firmware Version Report is: ${cmd}"
-
-state.fwVersion = cmd
-
+	log.info "Firmware Version Report is: ${cmd}"
+	state.fwVersion = cmd
 }
 //cmds
-
-
 
 void logsOff(){
     log.warn "debug logging disabled..."
@@ -146,49 +142,41 @@ List<String> stopLevelChange(){
 
 void zwaveEvent(hubitat.zwave.commands.configurationv1.ConfigurationReport cmd) {
     
-    if (state.parameters == undefined) state.parameters = [:]
+	if (state.parameters == undefined) state.parameters = [:]
     
-    state.parameters.put(cmd.parameterNumber, cmd.scaledConfigurationValue)
- 
+	state.parameters.put(cmd.parameterNumber, cmd.scaledConfigurationValue)
 
 	state.remoteRampTime = Math.round( (state.parameters.get('8') ?: 3)  * 1000 / (state.parameters.get('7') ?: 1))
 	state.localRampTime = Math.round((state.parameters.get('10') ?: 3) * 1000 / (state.parameters.get('9') ?: 1))
-
-	if(logEnable) log.debug "Parameters 7 is ${state.parameters.get('7')}, 8 is ${state.parameters.get('8')}, 9 is ${state.parameters.get('9')}, 10 is ${state.parameters.get('10')}"
-	
-	if(logEnable) log.debug "Remote ramp time calculated as ${state.remoteRampTime} and local ramp time calculated as ${state.localRampTime}"
-
-	
 }
 
 //returns on physical v1
 void zwaveEvent(hubitat.zwave.commands.switchmultilevelv1.SwitchMultilevelReport cmd){
-    if (logEnable) log.debug "SwitchMultilevelV1Report value: ${cmd.value}"
+    if (logEnable) log.debug "SwitchMultilevelV1Report value: ${cmd}"
     dimmerEvents(cmd.value,"physical")
 }
 
 //returns on physical v2
 void zwaveEvent(hubitat.zwave.commands.switchmultilevelv2.SwitchMultilevelReport cmd){
-    if (logEnable) log.debug "SwitchMultilevelV2Report value: ${cmd.value}"
+    if (logEnable) log.debug "SwitchMultilevelV2Report value: ${cmd}"
     dimmerEvents(cmd.value,"physical")
 }
 
 //returns on physical v3
 void zwaveEvent(hubitat.zwave.commands.switchmultilevelv3.SwitchMultilevelReport cmd){
-    if (logEnable) log.debug "SwitchMultilevelV3Report value: ${cmd.value}"
+    if (logEnable) log.debug "SwitchMultilevelV3Report value: ${cmd}"
     dimmerEvents(cmd.value,"physical")
 }
 
-
 //returns on digital
 void zwaveEvent(hubitat.zwave.commands.basicv1.BasicReport cmd){
-    if (logEnable) log.info "BasicReport value: ${cmd.value}"
+    if (logEnable) log.info "BasicReport value: ${cmd}"
     dimmerEvents(cmd.value,"digital")
 }
 
 //returns on digital v2
 void zwaveEvent(hubitat.zwave.commands.basicv2.BasicReport cmd){
-    if (logEnable) log.info "BasicReport V2 value is: ${cmd.value} and target value is: ${cmd.targetValue}"
+    if (logEnable) log.info "BasicReport V2  is: ${cmd}"
     dimmerEvents(cmd.targetValue,"digital")
 }
 
@@ -209,7 +197,7 @@ void zwaveEvent(hubitat.zwave.commands.centralscenev1.CentralSceneNotification c
         case 2:	//holding
             if (state."${button}" == 0){
                 state."${button}" = 1
-                runInMillis(200,delayHold,[data:button])
+                runInMillis(400,delayHold,[data:button])
             }
             break
         case 3:	//double tap, 4 is tripple tap
