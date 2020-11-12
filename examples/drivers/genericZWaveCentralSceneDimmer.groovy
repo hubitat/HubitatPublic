@@ -11,6 +11,7 @@
 				- changing device ramping parameters while attempting to set level is unpredictable and caused errors!.
 		- Removed support for non-plus devices (they can use the default Hubitat drivers!). 
 		- Fixed Central Scenehold refresh. Use slowRefresh timing
+		- removed "Flash" feature as it isn't yet working in this revision
 	2020--07-31 2.2.3 maxwell
 	    -switch to internal secure encap method
 	2020-06-01 2.2.1 bcopeland
@@ -59,7 +60,7 @@ metadata {
         capability "ReleasableButton"
         capability "DoubleTapableButton"
 
-        command "flash"
+        // command "flash"
         command "refresh"
         command "push", ["NUMBER"]
         command "hold", ["NUMBER"]
@@ -74,13 +75,13 @@ metadata {
 
         fingerprint deviceId: "3034", inClusters: "0x5E,0x86,0x72,0x5A,0x85,0x59,0x73,0x26,0x27,0x70,0x2C,0x2B,0x5B,0x7A", outClusters: "0x5B", mfr: "0315", prod: "4447", deviceJoinName: "ZWP WD-100 Dimmer"
         fingerprint deviceId: "3034", inClusters: "0x26,0x2B,0x2C,0x55,0x59,0x5A,0x5B,0x5E,0x6C,0x70,0x72,0x73,0x7A,0x85,0x86,0x9F", outClusters: "0x5B", mfr: "0315", prod: "4447", deviceJoinName: "ZLINK ZL-WD-100"
-	fingerprint deviceId: "3034", inClusters: "0x26,0x2B,0x2C,0x55,0x59,0x5A,0x5B,0x5E,0x6C,0x70,0x72,0x73,0x7A,0x85,0x86,0x9F", outClusters: "0x5B", mfr: "000C", prod: "4447", deviceJoinName: "Homeseer HS-WD100+"
+		fingerprint deviceId: "3034", inClusters: "0x26,0x2B,0x2C,0x55,0x59,0x5A,0x5B,0x5E,0x6C,0x70,0x72,0x73,0x7A,0x85,0x86,0x9F", outClusters: "0x5B", mfr: "000C", prod: "4447", deviceJoinName: "Homeseer HS-WD100+"
 
     }
 
     preferences {
         input name: "param4", type: "enum", title: "Paddle function", options:[[0:"Normal"],[1:"Reverse"]], defaultValue: 0
-        input name: "flashRate", type: "enum", title: "Flash rate", options:[[1:"1s"],[2:"2s"],[5:"5s"]], defaultValue: 1
+        // input name: "flashRate", type: "enum", title: "Flash rate", options:[[1:"1s"],[2:"2s"],[5:"5s"]], defaultValue: 1
         input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: true
         input name: "txtEnable", type: "bool", title: "Enable descriptionText logging", defaultValue: true
     }
