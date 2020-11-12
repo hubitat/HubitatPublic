@@ -31,7 +31,7 @@ import groovy.transform.Field
 @Field static Map commandClassVersions = [
         0x20: 2     //basic
         ,0x26: 3    //switchMultiLevel
-        ,0x5B: 1    //centralScene
+        ,0x5B: 3    //centralScene
         ,0x70: 1    //configuration get
 	,0x86: 2	// Version get
 ]
@@ -180,7 +180,15 @@ void zwaveEvent(hubitat.zwave.commands.basicv2.BasicReport cmd){
     dimmerEvents(cmd.targetValue,"digital")
 }
 
-void zwaveEvent(hubitat.zwave.commands.centralscenev1.CentralSceneNotification cmd){
+void releaseHold(button){
+    if (state."${button}" == 1)
+	{
+		sendButtonEvent("released", button, "physical")
+	}
+	state."${button}" = 0
+}
+
+void zwaveEvent(hubitat.zwave.commands.centralscenev2.CentralSceneNotification cmd){
     if (logEnable) log.debug "CentralSceneNotification: ${cmd}"
 
     Integer button = cmd.sceneNumber
@@ -188,25 +196,29 @@ void zwaveEvent(hubitat.zwave.commands.centralscenev1.CentralSceneNotification c
     String action
     switch (key){
         case 0: //pushed
-            action = "pushed"
+            sendButtonEvent("pushed", button, "physical")
+			state."${button}" = 0
             break
         case 1:	//released, only after 2
             state."${button}" = 0
-            action = "released"
+            sendButtonEvent("released", button, "physical")
             break
         case 2:	//holding
             if (state."${button}" == 0){
+			    sendButtonEvent("held", button, "physical")
                 state."${button}" = 1
-                runInMillis(400,delayHold,[data:button])
+                runInMillis(400,releaseHold,[data:button])
             }
+			else
+			{
+				if (logEnable) log.debug "Continuing hold of button ${button}"
+			    runInMillis(400,releaseHold,[data:button])
+			}
             break
         case 3:	//double tap, 4 is tripple tap
-            action = "doubleTapped"
+			sendButtonEvent("doubleTapped", button, "physical")
+			state."${button}" = 0
             break
-    }
-
-    if (action){
-        sendButtonEvent(action, button, "physical")
     }
 }
 
@@ -323,7 +335,7 @@ List<String> setLevel(level,ramp){
     
 	if (state.commandVersions.get('38') > 1)
 	{
-        log.info "Sending value ${level} with delay ${ramp * 1000} mSec using switchMultilevel Version 2"
+        if (logEnable) log.debug "Sending value ${level} with delay ${ramp * 1000} mSec using switchMultilevel Version 2"
 		
 		cmds.add(secure(zwave.switchMultilevelV2.switchMultilevelSet(value: level, dimmingDuration: ramp)))
 		// Switches supporting version 2 report using BasicReportv2 so no need to add delay as processing can use target value!
@@ -334,7 +346,7 @@ List<String> setLevel(level,ramp){
 	}
 	else
 	{
-		log.info "Sending value ${level} with default ramp delay ${state.remoteRampTime} mSec using switchMultilevel Version 1"
+		if (logEnable) log.debug "Sending value ${level} with default ramp delay ${state.remoteRampTime} mSec using switchMultilevel Version 1"
 		
 		// cmds.add(secure(zwave.configurationV1.configurationSet(scaledConfigurationValue:  ramp, parameterNumber: 8, size: 2)))
 		// cmds.add("delay 250")
