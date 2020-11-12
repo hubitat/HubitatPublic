@@ -221,7 +221,7 @@ void zwaveEvent(hubitat.zwave.commands.centralscenev2.CentralSceneNotification c
         case 2:	//holding
 		    // The first time you get a hold, send the hold event
 			// If the release has not occurred, assuming you are getting a refresh event and suppress sending another hold.
-			// Suppress using the "runIn" to set a timer which 
+			// Suppress using the "runIn" to set a timer which must be greater than the maximum slow refresh period of 55 seconds. Thus, use 60 seconds.
             if (state."${button}" == 0){
 			    sendButtonEvent("held", button, "physical")
                 state."${button}" = 1
