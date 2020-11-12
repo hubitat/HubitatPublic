@@ -216,12 +216,14 @@ void zwaveEvent(hubitat.zwave.commands.centralscenev2.CentralSceneNotification c
             if (state."${button}" == 0){
 			    sendButtonEvent("held", button, "physical")
                 state."${button}" = 1
-                runIn( (state.slowRefresh ? 60 : 1 ),forceReleaseHold,[data:button])
+                runIn( 60,forceReleaseHold,[data:button])		    
+                // runIn( (state.slowRefresh ? 60 : 1 ),forceReleaseHold,[data:button])
             }
 			else
 			{
 				if (logEnable) log.debug "Continuing hold of button ${button}"
-                runIn( (state.slowRefresh ? 60 : 1 ),forceReleaseHold,[data:button])
+                		runIn( 60,forceReleaseHold,[data:button])				
+                		// runIn( (state.slowRefresh ? 60 : 1 ),forceReleaseHold,[data:button])
 			}
             break
         case 3:	//double tap, 4 is tripple tap
