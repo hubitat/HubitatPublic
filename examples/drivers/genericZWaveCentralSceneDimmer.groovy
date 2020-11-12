@@ -11,7 +11,7 @@
 				- changing device ramping parameters while attempting to set level is unpredictable and caused errors!.
 		- Removed support for non-plus devices (they can use the default Hubitat drivers!). 
 		- Fixed Central Scenehold refresh. Use slowRefresh timing
-		- removed "Flash" feature as it isn't yet working in this revision
+		- removed "Flash" feature as it isn't yet working in this revision. Plan to restore it soon!
 	2020--07-31 2.2.3 maxwell
 	    -switch to internal secure encap method
 	2020-06-01 2.2.1 bcopeland
