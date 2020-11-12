@@ -2,7 +2,7 @@
 	Generic Z-Wave CentralScene Dimmer
 
 	Copyright 2016 -> 2020 Hubitat Inc.  All Rights Reserved
-	2020-11-08  2.2.4 jvm - switched to using multilevel set v2 if a device supports it. More accurately calculates ramp delay parameters. Removed support for non-plus devices (they can use the default Hubitat drivers!)
+	2020-11-12  2.2.4 jvm - switched to using multilevel set v2 if a device supports it. More accurately calculates ramp delay parameters. Removed support for non-plus devices (they can use the default Hubitat drivers!). Fixed hold refresh. Checks if slow refresh is supported for a central scene hold event and added timing support for slowRefresh if supported.
 	2020--07-31 2.2.3 maxwell
 	    -switch to internal secure encap method
 	2020-06-01 2.2.1 bcopeland
@@ -29,18 +29,18 @@
 import groovy.transform.Field
 
 @Field static Map commandClassVersions = [
-        0x20: 2     //basic
+        0x20: 2     //basic v2 preferred as it specifies target value!
         ,0x26: 3    //switchMultiLevel
         ,0x5B: 3    //centralScene
         ,0x70: 1    //configuration get
-	,0x86: 2	// Version get
+		,0x86: 2	// Version get
 ]
 @Field static Map switchVerbs = [0:"was turned",1:"is"]
 @Field static Map levelVerbs = [0:"was set to",1:"is"]
 @Field static Map switchValues = [0:"off",1:"on"]
 
 metadata {
-    definition (name: "Modified Generic Z-Wave CentralScene Dimmer",namespace: "hubitat", author: "Mike Maxwell") {
+    definition (name: "Generic Z-Wave Plus CentralScene Dimmer",namespace: "hubitat", author: "Based on code from Mike Maxwell") {
         capability "Actuator"
         capability "Switch"
         capability "Switch Level"
@@ -180,9 +180,15 @@ void zwaveEvent(hubitat.zwave.commands.basicv2.BasicReport cmd){
     dimmerEvents(cmd.targetValue,"digital")
 }
 
-void releaseHold(button){
+void forceReleaseHold(button){
+	// This function operates as a backup in case a release report was lost on the network
+	// It will force a release to be sent if there has been a hold event and then
+	// a release has not occurred within the central scene hold button refresh period.
+	// The central scene hold button refresh period is 200 mSec for old devices (state.slowRefresh == false), else it is 55 seconds.
+	// Thus, adding in extra time for network delays, etc., this forces release after either 1 or 60 seconds 
     if (state."${button}" == 1)
 	{
+		// only need to force a release hold if the button state is 1 when the timer expires
 		sendButtonEvent("released", button, "physical")
 	}
 	state."${button}" = 0
@@ -204,15 +210,18 @@ void zwaveEvent(hubitat.zwave.commands.centralscenev2.CentralSceneNotification c
             sendButtonEvent("released", button, "physical")
             break
         case 2:	//holding
+		    // The first time you get a hold, send the hold event
+			// If the release has not occurred, assuming you are getting a refresh event and suppress sending another hold.
+			// Suppress using the "runIn" to set a timer which 
             if (state."${button}" == 0){
 			    sendButtonEvent("held", button, "physical")
                 state."${button}" = 1
-                runInMillis(400,releaseHold,[data:button])
+                runIn( (state.slowRefresh ? 60 : 1 ),forceReleaseHold,[data:button])
             }
 			else
 			{
 				if (logEnable) log.debug "Continuing hold of button ${button}"
-			    runInMillis(400,releaseHold,[data:button])
+                runIn( (state.slowRefresh ? 60 : 1 ),forceReleaseHold,[data:button])
 			}
             break
         case 3:	//double tap, 4 is tripple tap
@@ -325,11 +334,11 @@ List<String> setLevel(level){
 List<String> setLevel(level,ramp){
     state.flashing = false
     state.bin = level
-	// Values greater than 127 need a special encoding, so simplify with use of 127
+	// Values greater than 127 signify minutes and users may not realize they are setting huge delays --  simplify with use of 127 as the maximum.
     if (ramp > 127) ramp = 127
-    // else if (ramp == 0) ramp = 3
-    Integer delay = (ramp * 1000) + 250
+    if (ramp < 0) ramp = 0
     if (level > 99) level = 99
+	if (level < 0) level = 0
     
 	List<String> cmds = []
     
@@ -337,9 +346,11 @@ List<String> setLevel(level,ramp){
 	{
         if (logEnable) log.debug "Sending value ${level} with delay ${ramp * 1000} mSec using switchMultilevel Version 2"
 		
+		
 		cmds.add(secure(zwave.switchMultilevelV2.switchMultilevelSet(value: level, dimmingDuration: ramp)))
-		// Switches supporting version 2 report using BasicReportv2 so no need to add delay as processing can use target value!
-		// cmds.add("delay ${delay}")
+		// Switches supporting version 2 will report using BasicReportv2 so you don't need
+		// to wait for switch to complete transition before you get the return report as v2 report has the target value and 
+		// you can use that target value to know what the new value will be when the transition completes.!
 		cmds.add(secure(zwave.basicV1.basicGet()))
 		
 		if(cmds) return cmds
@@ -348,10 +359,11 @@ List<String> setLevel(level,ramp){
 	{
 		if (logEnable) log.debug "Sending value ${level} with default ramp delay ${state.remoteRampTime} mSec using switchMultilevel Version 1"
 		
+		// Versions 2.2.3 and lower used to reset the ramp rate. This can be a problematic operation. Better to ignore and use the ramp rate set by the user in the configuration parameters.
 		// cmds.add(secure(zwave.configurationV1.configurationSet(scaledConfigurationValue:  ramp, parameterNumber: 8, size: 2)))
 		// cmds.add("delay 250")
 		cmds.add(secure(zwave.switchMultilevelV1.switchMultilevelSet(value: level)))
-		cmds.add("delay ${delay}")
+		cmds.add("delay ${(state.remoteRampTime ?: 3000) + 250}")
 		cmds.add(secure(zwave.basicV1.basicGet()))
 		
 		if(cmds) return cmds		
@@ -363,37 +375,95 @@ List<String> setLevel(level,ramp){
 List<String> on(){
     state.bin = -11
     state.flashing = false
-    return delayBetween([
-            secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0xFF))
-            ,secure(zwave.basicV1.basicGet())
-    ] , (state.remoteRampTime ?: 3000) + 250)
+	
+	def cmds = [];
+	cmds.add(secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0xFF)))
+	
+	if (state.commandVersions.get('32') > 1)
+	{
+		// Don't need a delay if Basic Report v2 is available since you know the new value based on the reported
+		// target value and you don't have to wait the entire ramp period!
+		cmds.add(secure(zwave.basicV2.basicGet()))	
+	}
+	else
+	{
+		// else if only the older basic report is available, have to wait the full time.
+		cmds.add("delay ${(state.remoteRampTime ?: 3000) + 250}")
+		cmds.add(secure(zwave.basicV1.basicGet()))	
+	}
+    return cmds
 }
 
 List<String> off(){
     state.bin = -10
     state.flashing = false
-    return delayBetween([
-            secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0x00))
-            ,secure(zwave.basicV1.basicGet())
-    ] , (state.remoteRampTime ?: 3000) + 250)
+	
+	def cmds = [];
+	cmds.add(secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0x00)))
+	
+	if (state.commandVersions.get('32') > 1)
+	{
+		// Don't need a delay if Basic Report v2 is available since you know the new value based on the reported
+		// target value and you don't have to wait the entire ramp period!
+		cmds.add(secure(zwave.basicV2.basicGet()))	
+	}
+	else
+	{
+		// else if only the older basic report is available, have to wait the full time.
+		cmds.add("delay ${(state.remoteRampTime ?: 3000) + 250}")
+		cmds.add(secure(zwave.basicV1.basicGet()))	
+	}
+	return cmds
 }
 
 String flash(){
     if (txtEnable) log.info "${device.displayName} was set to flash with a rate of ${flashRate ?: 750} milliseconds"
+
+	if (state.commandVersions.get('38') == 1)
+	{
+		log.warn "Your Zwave device may not properly display device flashing due to lack of support of updated protocol"
+	}
     state.flashing = true
     return flashOn()
 }
 
 String flashOn(){
     if (!state.flashing) return
+	
+	def cmds = [];
+	
+	if (state.commandVersions.get('38') > 1)
+	{
+        if (logEnable) log.debug "Sending value ${level} with delay ${ramp * 1000} mSec using switchMultilevel Version 2"
+		cmds.add(secure(zwave.switchMultilevelV2.switchMultilevelSet(value: 0xFF, dimmingDuration: ((flashRate ?: 750).toInteger()))))
+	}
+	else
+	{
+		cmds.add (secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0xFF)))
+	}
+
     runInMillis((flashRate ?: 750).toInteger(), flashOff)
-    return secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0xFF))
+	
+    return cmds
 }
 
 String flashOff(){
     if (!state.flashing) return
     runInMillis((flashRate ?: 750).toInteger(), flashOn)
-    return secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0x00))
+	
+	def cmds = [];
+	
+	if (state.commandVersions.get('38') > 1)
+	{
+        if (logEnable) log.debug "Sending value ${level} with delay ${ramp * 1000} mSec using switchMultilevel Version 2"
+		cmds.add(secure(zwave.switchMultilevelV2.switchMultilevelSet(value: 0x00, dimmingDuration: ((flashRate ?: 750).toInteger()))))
+	}
+	else
+	{
+		cmds.add (secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0x00)))
+	}
+	
+    return cmds
 }
 
 String refresh(){
@@ -403,8 +473,13 @@ String refresh(){
 }
 
 void zwaveEvent(hubitat.zwave.commands.versionv1.VersionReport  cmd) {
-    log.info "Version Report Info ${cmd}"	
+    if(logEnable) log.debug "Version Report Info ${cmd}"	
 	state.versionReport = cmd
+	}
+	
+void zwaveEvent(hubitat.zwave.commands.centralscenev3.CentralSceneConfigurationReport  cmd) {
+    if(logEnable) log.debug "Central Scene V3 Configuration Report Info ${cmd}"	
+	state.slowRefresh = cmd.slowRefresh;
 	}
 	
 List<String>   getDeviceInfo(){
@@ -417,6 +492,13 @@ List<String>   getDeviceInfo(){
 
 	// Software Version
 	cmds.add(secure(zwave.versionV1.versionGet()))
+	
+	// Set central Scene Slow Refresh
+	if (state.commandVersions.get('91') > 2)
+	{
+		if (logEnable) log.debug "Querying for Central Scene Configuration"
+		cmds.add(secure(hubitat.zwave.commands.centralscenev3.CentralSceneConfigurationGet() ))
+	}
 
 	// Toggle Switch Orientation
 	cmds.add(secure(zwave.configurationV1.configurationGet(parameterNumber: 4)))
@@ -435,23 +517,10 @@ List<String>   getDeviceInfo(){
 	
 	return cmds
 }
-	
-List<String>   installed(){
-    log.warn "installed..."
-    sendEvent(name: "level", value: 20)
-	
-
-    List<String> cmds = []
-		
-	cmds = getDeviceInfo()
-	
-	
-    if (cmds) return cmds
-
-}
 
 
-// Command class report - only really intersted in the multiLevelVersion report!
+
+// Command class report - Primary interest in this driver are the multiLevelVersion and CentralScene reports!
 // Maybe expand to also include central scene report!
 void zwaveEvent(hubitat.zwave.commands.versionv1.VersionCommandClassReport cmd) {
     log.info "CommandClassReport- class:${ "0x${intToHexStr(cmd.requestedCommandClass)}" }, version:${cmd.commandClassVersion}"	
@@ -461,17 +530,30 @@ void zwaveEvent(hubitat.zwave.commands.versionv1.VersionCommandClassReport cmd) 
     state.commandVersions.put(cmd.requestedCommandClass, cmd.commandClassVersion)    
 	
 }	
+	
+List<String>   installed(){
 
+    log.warn "installed Generic Z-Wave Plus CentralScene Dimmer ..."
+	state.slowRefresh = false
+	
+    sendEvent(name: "level", value: 20)
+
+    List<String> cmds = []
+		
+	cmds = getDeviceInfo()
+	
+    if (cmds) return cmds
+
+}
 
 List<String>  configure(){
-    log.warn "configuring custom  Zwave Central Scene Dimmer Driver ..."
+    log.warn "configuring Generic Z-Wave Plus CentralScene Dimmer ..."
     runIn(1800,logsOff)
+	state.slowRefresh = false	
 	
-	// Clean up some state values from old versions of this update. 
-        state.remove("basicVersion")
-        state.remove("switchMultilevelVersion")
-		
     sendEvent(name: "numberOfButtons", value: 2)
+	
+	// These state values are used to track whether you are in a Central Scene button holding state
     state."${1}" = 0
     state."${2}" = 0
     runIn(5, "refresh")
@@ -483,9 +565,11 @@ List<String>  configure(){
 
 //capture preference changes
 List<String> updated(){
-    log.info "updated..."
+    log.info "updated Generic Z-Wave Plus CentralScene Dimmer ..."
     log.warn "debug logging is: ${logEnable == true}"
     log.warn "description logging is: ${txtEnable == true}"
+	state.slowRefresh = false	
+
     if (logEnable) runIn(1800,logsOff)
 
     List<String> cmds = []
