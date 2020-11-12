@@ -72,7 +72,7 @@ metadata {
 
     preferences {
         input name: "param4", type: "enum", title: "Paddle function", options:[[0:"Normal"],[1:"Reverse"]], defaultValue: 0
-        input name: "flashRate", type: "enum", title: "Flash rate", options:[[750:"750ms"],[1000:"1s"],[2000:"2s"],[5000:"5s"]], defaultValue: 750
+        input name: "flashRate", type: "enum", title: "Flash rate", options:[[1:"1s"],[2:"2s"],[5:"5s"]], defaultValue: 1
         input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: true
         input name: "txtEnable", type: "bool", title: "Enable descriptionText logging", defaultValue: true
     }
@@ -417,7 +417,7 @@ List<String> off(){
 }
 
 String flash(){
-    if (txtEnable) log.info "${device.displayName} was set to flash with a rate of ${flashRate ?: 750} milliseconds"
+    if (txtEnable) log.info "${device.displayName} was set to flash with a rate of ${flashRate ?: 1} seconds"
 
 	if (state.commandVersions.get('38') == 1)
 	{
@@ -431,37 +431,41 @@ String flashOn(){
     if (!state.flashing) return
 	
 	def cmds = [];
+	log.info "Flashing On"
 	
 	if (state.commandVersions.get('38') > 1)
 	{
         if (logEnable) log.debug "Sending value ${level} with delay ${ramp * 1000} mSec using switchMultilevel Version 2"
-		cmds.add(secure(zwave.switchMultilevelV2.switchMultilevelSet(value: 0xFF, dimmingDuration: ((flashRate ?: 750).toInteger()))))
+		cmds.add(secure(zwave.switchMultilevelV2.switchMultilevelSet(value: 0xFF, dimmingDuration: ((flashRate ?: 1).toInteger()))))
 	}
 	else
 	{
 		cmds.add (secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0xFF)))
 	}
+	cmds.add("delay ${(flashRate).toInteger()}")
 
-    runInMillis((flashRate ?: 750).toInteger(), flashOff)
+    runIn((flashRate ?: 1).toInteger(), flashOff)
 	
     return cmds
 }
 
 String flashOff(){
     if (!state.flashing) return
-    runInMillis((flashRate ?: 750).toInteger(), flashOn)
+    runIn((flashRate ?: 1).toInteger(), flashOn)
 	
 	def cmds = [];
+	log.info "Flashing Off"
 	
 	if (state.commandVersions.get('38') > 1)
 	{
         if (logEnable) log.debug "Sending value ${level} with delay ${ramp * 1000} mSec using switchMultilevel Version 2"
-		cmds.add(secure(zwave.switchMultilevelV2.switchMultilevelSet(value: 0x00, dimmingDuration: ((flashRate ?: 750).toInteger()))))
+		cmds.add(secure(zwave.switchMultilevelV2.switchMultilevelSet(value: 0x00, dimmingDuration: ((flashRate ?: 1).toInteger()))))
 	}
 	else
 	{
 		cmds.add (secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0x00)))
 	}
+	cmds.add("delay ${(flashRate).toInteger()}")
 	
     return cmds
 }
