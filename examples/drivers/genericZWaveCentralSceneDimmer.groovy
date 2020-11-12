@@ -2,7 +2,15 @@
 	Generic Z-Wave CentralScene Dimmer
 
 	Copyright 2016 -> 2020 Hubitat Inc.  All Rights Reserved
-	2020-11-12  2.2.4 jvm - switched to using multilevel set v2 if a device supports it. More accurately calculates ramp delay parameters. Removed support for non-plus devices (they can use the default Hubitat drivers!). Fixed hold refresh. Checks if slow refresh is supported for a central scene hold event and added timing support for slowRefresh if supported.
+	2020-11-12  2.2.4 jvm 
+		- Queries device for parameters 7-10 and uses the results to calculate local and remote delays
+		- Gather's command class versions at install / configure / update time to enable more advanced functions
+		- switched to using multilevel set v2 if a device supports it - for improved dimming rate control
+		- Removed code that sets remote ramping delay by changing device parameter during the level action 
+			- if device doesn't support multilevel v2, then always use the timing set by the device parameters 
+				- changing device ramping parameters while attempting to set level is unpredictable and caused errors!.
+		- Removed support for non-plus devices (they can use the default Hubitat drivers!). 
+		- Fixed Central Scenehold refresh. Use slowRefresh timing
 	2020--07-31 2.2.3 maxwell
 	    -switch to internal secure encap method
 	2020-06-01 2.2.1 bcopeland
@@ -33,7 +41,7 @@ import groovy.transform.Field
         ,0x26: 3    //switchMultiLevel
         ,0x5B: 3    //centralScene
         ,0x70: 1    //configuration get
-		,0x86: 2	// Version get
+	,0x86: 2	// Version get
 ]
 @Field static Map switchVerbs = [0:"was turned",1:"is"]
 @Field static Map levelVerbs = [0:"was set to",1:"is"]
@@ -216,7 +224,9 @@ void zwaveEvent(hubitat.zwave.commands.centralscenev2.CentralSceneNotification c
             if (state."${button}" == 0){
 			    sendButtonEvent("held", button, "physical")
                 state."${button}" = 1
-                runIn( 60,forceReleaseHold,[data:button])		    
+				// Assume slow refresh rate of 55 seconds.
+                runIn( 60,forceReleaseHold,[data:button])		   
+				// Alternatively, could check for slowRefresh timing, but easier not to.	
                 // runIn( (state.slowRefresh ? 60 : 1 ),forceReleaseHold,[data:button])
             }
 			else
