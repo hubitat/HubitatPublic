@@ -484,7 +484,7 @@ List<String>   getDeviceInfo(){
 	if (state.commandVersions.get('91') > 2)
 	{
 		if (logEnable) log.debug "Querying for Central Scene Configuration"
-		cmds.add(secure(hubitat.zwave.commands.centralscenev3.CentralSceneConfigurationGet() ))
+		cmds.add(secure(zwave.centralSceneV3.centralSceneConfigurationGet() ))
 	}
 
 	// Toggle Switch Orientation
