@@ -55,6 +55,7 @@ metadata {
         capability "Switch Level"
         capability "ChangeLevel"
         capability "Configuration"
+	capability "Initialize"
         capability "PushableButton"
         capability "HoldableButton"
         capability "ReleasableButton"
@@ -569,4 +570,10 @@ List<String> updated(){
     }
 
     if (cmds) return cmds
+}
+
+List<String>  initialize()
+{
+	Date date = new Date(getTime())
+	state.initializedTime = date
 }
