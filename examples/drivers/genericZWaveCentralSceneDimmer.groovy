@@ -470,6 +470,7 @@ void zwaveEvent(hubitat.zwave.commands.centralscenev3.CentralSceneConfigurationR
 	
 List<String>   getDeviceInfo(){
 	def cmds = [];
+    if(state.commandVersions == undefined) state.commandVersions = [:]
 	
 	List<Integer> ic = getDataValue("inClusters").split(",").collect{ hexStrToUnsignedInt(it) }
     ic.each {
