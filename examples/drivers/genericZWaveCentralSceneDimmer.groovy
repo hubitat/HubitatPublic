@@ -60,7 +60,7 @@ metadata {
         capability "ReleasableButton"
         capability "DoubleTapableButton"
 
-        // command "flash"
+        command "flash"
         command "refresh"
         command "push", ["NUMBER"]
         command "hold", ["NUMBER"]
@@ -81,7 +81,7 @@ metadata {
 
     preferences {
         input name: "param4", type: "enum", title: "Paddle function", options:[[0:"Normal"],[1:"Reverse"]], defaultValue: 0
-        // input name: "flashRate", type: "enum", title: "Flash rate", options:[[1:"1s"],[2:"2s"],[5:"5s"]], defaultValue: 1
+        input name: "flashRate", type: "enum", title: "Flash rate", options:[[1:"1s"],[2:"2s"],[5:"5s"]], defaultValue: 1
         input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: true
         input name: "txtEnable", type: "bool", title: "Enable descriptionText logging", defaultValue: true
     }
@@ -442,45 +442,14 @@ String flash(){
 
 String flashOn(){
     if (!state.flashing) return
-	
-	def cmds = [];
-	log.info "Flashing On"
-	
-	if (state.commandVersions.get('38') > 1)
-	{
-        if (logEnable) log.debug "Sending value ${level} with delay ${ramp * 1000} mSec using switchMultilevel Version 2"
-		cmds.add(secure(zwave.switchMultilevelV2.switchMultilevelSet(value: 0xFF, dimmingDuration: ((flashRate ?: 1).toInteger()))))
-	}
-	else
-	{
-		cmds.add (secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0xFF)))
-	}
-	cmds.add("delay ${(flashRate).toInteger()}")
-
-    runIn((flashRate ?: 1).toInteger(), flashOff)
-	
-    return cmds
+    runIn((flashRate >= 1 ? flashRate: 1).toInteger(), flashOff) 
+    return secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 99))
 }
 
 String flashOff(){
     if (!state.flashing) return
-    runIn((flashRate ?: 1).toInteger(), flashOn)
-	
-	def cmds = [];
-	log.info "Flashing Off"
-	
-	if (state.commandVersions.get('38') > 1)
-	{
-        if (logEnable) log.debug "Sending value ${level} with delay ${ramp * 1000} mSec using switchMultilevel Version 2"
-		cmds.add(secure(zwave.switchMultilevelV2.switchMultilevelSet(value: 0x00, dimmingDuration: ((flashRate ?: 1).toInteger()))))
-	}
-	else
-	{
-		cmds.add (secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0x00)))
-	}
-	cmds.add("delay ${(flashRate).toInteger()}")
-	
-    return cmds
+    runIn((flashRate >= 1 ? flashRate: 1).toInteger(), flashOn)
+    return secure(zwave.switchMultilevelV1.switchMultilevelSet(value: 0))
 }
 
 String refresh(){
