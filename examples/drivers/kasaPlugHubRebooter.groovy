@@ -2,7 +2,7 @@ metadata {
 	definition (
 		name: "Kasa Plug Hub Rebooter",
         namespace: "hubitat",
-		author: "Victor Urvantsev"
+		author: "Victor U."
 	) {
         command "schedulePowerCycle"
 	}
@@ -32,7 +32,6 @@ def updated() {
 	unschedule()
     interfaces.rawSocket.disconnect()
 
-    //	Manual installation support.  Get IP and Plug Number
 	if (!device_IP) {
 	    log.warn("Device IP is not set.")
 		return
