@@ -21,7 +21,6 @@ metadata {
 }
 
 def installed() {
-	logInfo("Installing Device....")
 	runIn(2, updated)
 }
 
