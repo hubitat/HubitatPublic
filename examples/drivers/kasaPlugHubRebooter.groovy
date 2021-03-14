@@ -25,9 +25,8 @@ def installed() {
 	runIn(2, updated)
 }
 
-//	===== Updated and associated methods =====
 def updated() {
-    if (debug) log.debug("Updating device preferences....")
+    if (debug) log.debug("updating preferences....")
     
 	unschedule()
     interfaces.rawSocket.disconnect()
