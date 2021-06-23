@@ -95,8 +95,6 @@ def manageCycle(){
 	def heatingOn = (temperature <= (heatingSetpoint - hysteresis))
 	if (thermostatOperatingState == "heating") heatingOn = (temperature <= (heatingSetpoint + hysteresis))
 	
-	log.debug "heatingOn=$heatingOn, coolingOn=$coolingOn, temp=$temperature, cSP=$coolingSetpoint, hSP=$heatingSetpoint"
-
 	if (thermostatMode == "cool") {
 		if (coolingOn && thermostatOperatingState != "cooling") setThermostatOperatingState("cooling")
 		else if (thermostatOperatingState != "idle") setThermostatOperatingState("idle")
