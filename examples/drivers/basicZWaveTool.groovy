@@ -2,6 +2,8 @@
 	Basic Z-Wave tool
 
 	Copyright 2016 -> 2020 Hubitat Inc.  All Rights Reserved
+	2021-06-20
+		- Added support for retriving command class versions for securetly added devices	
 	2020-08-14 maxwell
 		-refactor
 		-update VersionReport
@@ -133,6 +135,7 @@ List<String> getParameterReport(param = null){
 List<String> getCommandClassReport(){
     List<String> cmds = []
     List<Integer> ic = getDataValue("inClusters").split(",").collect{ hexStrToUnsignedInt(it) }
+    ic += getDataValue("secureInClusters")?.split(",").collect{ hexStrToUnsignedInt(it) }
     ic.each {
 		if (it) cmds.add(secureCmd(zwave.versionV1.versionCommandClassGet(requestedCommandClass:it)))
     }
