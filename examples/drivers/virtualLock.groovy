@@ -26,6 +26,7 @@ metadata {
         capability "Lock"
         capability "Lock Codes"
         capability "Refresh"
+        capability "Switch"
 
         command "testSetMaxCodes", ["NUMBER"]
         command "testUnlockWithCode", ["STRING"]
@@ -80,6 +81,14 @@ void lock(){
     String descriptionText = "${device.displayName} was locked"
     if (txtEnable) log.info "${descriptionText}"
     sendEvent(name:"lock",value:"locked",descriptionText: descriptionText, type:"digital")
+}
+
+void on() {
+    lock()
+}
+
+void off() {
+    unlock()
 }
 
 void unlock(){
