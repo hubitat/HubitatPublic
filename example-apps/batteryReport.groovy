@@ -36,7 +36,6 @@ void initialize() {
 }
 
 void handler() {
-	List noReport = []
 	String s = ""
 	def rightNow = new Date()
 	devs.each {
@@ -44,11 +43,8 @@ void handler() {
 		if(lastTime) {
 			def minutes = ((rightNow.time - lastTime.time) / 60000).toInteger()
 			if(minutes < 0) minutes += 1440
-			if(minutes > 1440) noReport += it		// didn't report in previous 24 hours
-		} else noReport += it
+			if(minutes > 1440) s += "$it.displayName, "
+		} else s += "$it.displayName, "
 	}
-	if(noReport) {
-		noReport.each{s += "$it.displayName, "}
-		notice.deviceNotification("${s[0..-3]} did not report")
-	} else notice.deviceNotification("All devices reported")
+	notice.deviceNotification(s ? "${s[0..-3]} did not report" : "All devices reported")
 }
