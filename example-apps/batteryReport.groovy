@@ -32,7 +32,7 @@ def installed() {
 }
 
 void initialize() {
-	schedule("0 0 9 ? * * *", handler)
+	schedule("0 0 9 ? * * *", handler)		// 9:00 AM every day
 }
 
 void handler() {
@@ -44,7 +44,7 @@ void handler() {
 		if(lastTime) {
 			def minutes = ((rightNow.time - lastTime.time) / 60000).toInteger()
 			if(minutes < 0) minutes += 1440
-			if(minutes > 1440) noReport += it
+			if(minutes > 1440) noReport += it		// didn't report in previous 24 hours
 		} else noReport += it
 	}
 	if(noReport) {
