@@ -2,7 +2,7 @@
 
 metadata {
     definition (name: "Virtual Omni Sensor", namespace: "hubitat", author: "Bruce Ravenel") {
-        capability "Presence Sensor"
+                capability "Presence Sensor"
         capability "Acceleration Sensor"
         capability "Carbon Dioxide Measurement"
         capability "Carbon Monoxide Detector"
@@ -15,6 +15,7 @@ metadata {
         capability "Water Sensor"
         capability "Energy Meter"
         capability "Power Meter"
+        capability "Battery"
         command "arrived"
         command "departed"
         command "accelerationActive"
@@ -36,6 +37,7 @@ metadata {
         command "setVariable", ["String"]
         command "setEnergy", ["Number"]
         command "setPower", ["Number"]
+        command "setBattery", ["Number"]
         attribute "variable", "String"
     }
     preferences {
@@ -200,4 +202,11 @@ def setPower(power) {
     def descriptionText = "${device.displayName} is ${power} power"
     if (txtEnable) log.info "${descriptionText}"
     sendEvent(name: "power", value: power, descriptionText: descriptionText)
+}
+
+def setBattery(level) {
+    def unit = "%"
+    def descriptionText = "${device.displayName} battery level is ${level}%"
+    if (txtEnable) log.info "${descriptionText}"
+    sendEvent(name: "battery", value: level, descriptionText: descriptionText, unit: unit)
 }
