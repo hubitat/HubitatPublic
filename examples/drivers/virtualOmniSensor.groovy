@@ -2,7 +2,7 @@
 
 metadata {
     definition (name: "Virtual Omni Sensor", namespace: "hubitat", author: "Bruce Ravenel") {
-                capability "Presence Sensor"
+        capability "Presence Sensor"
         capability "Acceleration Sensor"
         capability "Carbon Dioxide Measurement"
         capability "Carbon Monoxide Detector"
