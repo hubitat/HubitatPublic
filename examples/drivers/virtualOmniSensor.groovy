@@ -1,7 +1,7 @@
 // Copyright 2016-2019 Hubitat Inc.  All Rights Reserved
 
 metadata {
-    definition (name: "Virtual Omni Sensor", namespace: "hubitat", author: "Bruce Ravenel") {
+    definition (name: "Virtual Omni Sensor With Battery", namespace: "hubitat", author: "Terrel") {
         capability "Presence Sensor"
         capability "Acceleration Sensor"
         capability "Carbon Dioxide Measurement"
@@ -16,6 +16,7 @@ metadata {
         capability "Energy Meter"
         capability "Power Meter"
         capability "Battery"
+        capability "Tamper Alert"
         command "arrived"
         command "departed"
         command "accelerationActive"
@@ -38,6 +39,8 @@ metadata {
         command "setEnergy", ["Number"]
         command "setPower", ["Number"]
         command "setBattery", ["Number"]
+        command "tamperClear"
+        command "tamperDetected"
         attribute "variable", "String"
     }
     preferences {
@@ -64,6 +67,7 @@ def installed() {
     smokeClear()
     setTemperature(70)
     dry()
+    tamperClear()
     runIn(1800,logsOff)
 }
 
@@ -205,8 +209,18 @@ def setPower(power) {
 }
 
 def setBattery(level) {
-    def unit = "%"
     def descriptionText = "${device.displayName} battery level is ${level}%"
     if (txtEnable) log.info "${descriptionText}"
     sendEvent(name: "battery", value: level, descriptionText: descriptionText, unit: unit)
+}
+def tamperClear() {
+    def descriptionText = "${device.displayName} is clear"
+    if (txtEnable) log.info "${descriptionText}"
+    sendEvent(name: "tamper", value: "clear", descriptionText: descriptionText)
+}
+
+def tamperDetected() {
+    def descriptionText = "${device.displayName} is detected"
+    if (txtEnable) log.info "${descriptionText}"
+    sendEvent(name: "tamper", value: "detected", descriptionText: descriptionText)
 }
