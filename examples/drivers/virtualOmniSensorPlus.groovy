@@ -25,6 +25,8 @@
 *      in the default Virtual Omni Sensor driver
 *
 *  CHANGE LOG
+*  v20211002
+*      -change batteryLevel attribute back to battery
 *  v20211001
 *      -add header
 *      -add battery status
@@ -83,7 +85,6 @@ metadata {
         command "tamperClear"
         command "tamperDetected"
         attribute "variable", "String"
-        attribute "batteryLevel", "Number"
         attribute "batteryStatus", "String"
         attribute "batteryLastUpdated", "Date"
     }
@@ -284,10 +285,12 @@ def batteryStatusCharging() {
 
 Number getBattery() {
     //return battery level
-    return device.currentValue('batteryLevel')
+    return device.currentValue('battery')
 }
 
+//Command to set the battery level
 def setBattery(level) {
+//def battery(level) {
     //Check battery level is 0 - 100
     if(level >= 0 && level <= 100) {
         //Get current date and time
@@ -317,7 +320,7 @@ def setBattery(level) {
         if (txtEnable) log.info "${descriptionTextLevel}"
         if (txtEnable) log.info "${descriptionTextLastUpdate}"
         //Update attributes
-        sendEvent(name: "batteryLevel", value: level, descriptionText: descriptionTextLevel, unit: unit)
+        sendEvent(name: "battery", value: level, descriptionText: descriptionTextLevel, unit: unit)
         sendEvent(name: "batteryLastUpdated", value : lastUpdate.format("yyyy/MM/dd HH:mm:ss"), descriptionText: descriptionTextLastUpdate)
         //Reset warning count if there have been previous warnings
         if (state.warningCount > 0) {
@@ -338,6 +341,11 @@ def setBattery(level) {
             }
         }
     }
+}
+
+//The other command to set battery level
+def battery(level) {
+    setBattery(level)
 }
 
 def tamperClear() {
