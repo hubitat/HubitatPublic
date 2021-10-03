@@ -25,9 +25,12 @@
 *      in the default Virtual Omni Sensor driver
 *
 *  CHANGE LOG
-*  v20211002
+*  v202110022249
+*      -updates to event descriptive text for humidity
+*      -add hours and minutes to change log dates
+*  v202110020000
 *      -change batteryLevel attribute back to battery
-*  v20211001
+*  v202110010000
 *      -add header
 *      -add battery status
 *      -add battery last updated
@@ -194,7 +197,7 @@ def setCarbonDioxide(CO2) {
 }
 
 def setRelativeHumidity(humid) {
-    def descriptionText = "${device.displayName} is ${humid}% humidity"
+    def descriptionText = "${device.displayName} humidity is ${humid}%"
     if (txtEnable) log.info "${descriptionText}"
     sendEvent(name: "humidity", value: humid, descriptionText: descriptionText, unit: "RH%")
 }
@@ -225,7 +228,7 @@ def smokeClear() {
 
 def setTemperature(temp) {
     def unit = "°${location.temperatureScale}"
-    def descriptionText = "${device.displayName} is ${temp}${unit}"
+    def descriptionText = "${device.displayName} temperature is ${temp}${unit}"
     if (txtEnable) log.info "${descriptionText}"
     sendEvent(name: "temperature", value: temp, descriptionText: descriptionText, unit: unit)
 }
@@ -266,7 +269,7 @@ String getBatteryStatus() {
 }
 
 def setBatteryStatus(status) {
-    def descriptionText = "${device.displayName} battery status is: ${status}"
+    def descriptionText = "${device.displayName} battery status is ${status}"
     if (txtEnable) log.info "${descriptionText}"
     sendEvent(name: "batteryStatus", value: status, descriptionText: descriptionText)
 }
