@@ -25,6 +25,8 @@
 *      in the default Virtual Omni Sensor driver
 *
 *  CHANGE LOG
+*  v202110031411
+*      -add threeAxis
 *  v202110022249
 *      -updates to event descriptive text for humidity
 *      -add hours and minutes to change log dates
@@ -60,6 +62,7 @@ metadata {
         capability "Power Meter"
         capability "Battery"
         capability "Tamper Alert"
+        capability "Three Axis"
         command "arrived"
         command "departed"
         command "accelerationActive"
@@ -87,6 +90,7 @@ metadata {
         command "batteryStatusCharging"
         command "tamperClear"
         command "tamperDetected"
+        command "threeAxis", [[name:"x",type:"NUMBER", description:"X-Axis", constraints:["NUMBER"]],[name:"y",type:"NUMBER", description:"Y-Axis", constraints:["NUMBER"]],[name:"z",type:"NUMBER", description:"Z-Axis", constraints:["NUMBER"]]]
         attribute "variable", "String"
         attribute "batteryStatus", "String"
         attribute "batteryLastUpdated", "Date"
@@ -361,4 +365,14 @@ def tamperDetected() {
     def descriptionText = "${device.displayName} tamper is detected"
     if (txtEnable) log.info "${descriptionText}"
     sendEvent(name: "tamper", value: "detected", descriptionText: descriptionText)
+}
+
+def threeAxis(x,y,z) {
+    def xyz = "x:${x},y:${y},z:${z}"
+    def descriptionText = "${device.displayName} threeAxis is ${xyz}"
+    if (txtEnable) log.info "${descriptionText}"
+    sendEvent(name: "threeAxis", value: xyz, descriptionText: descriptionText)
+    sendEvent(name: "xAxis", value: x)
+    sendEvent(name: "yAxis", value: y)
+    sendEvent(name: "zAxis", value: z)
 }
