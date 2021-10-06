@@ -29,7 +29,7 @@
 *************/
 
 metadata {
-    definition (name: "Virtual Fibaro ZW5",
+    definition (name: "Virtual Zooz ZSE29",
                 namespace: "whodunitGorilla",
                 author: "Terrel Allen",
                 importUrl: "https://raw.githubusercontent.com/terrelsa13/HubitatPublic/master/examples/drivers/virtualFibaroZW5.groovy")
