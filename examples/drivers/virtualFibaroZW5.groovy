@@ -1,5 +1,5 @@
 /*************
-*  Virtual Omni Sensor Plus
+*  Virtual Fibaro ZW5
 *  Copyright 2021 Terrel Allen All Rights Reserved
 *
 *  This program is free software: you can redistribute it and/or modify
@@ -20,70 +20,34 @@
 *  Modify at your own risk.
 *
 *  USAGE
-*  Repalces existing Virtual Omni Sensor driver
-*  Adds additonal capabilities, commands, and attributes not available
-*      in the default Virtual Omni Sensor driver
+*  Virtual Fibaro ZW5 Driver
 *
 *  CHANGE LOG
-*  v202110031411
-*      -add threeAxis
-*  v202110022249
-*      -updates to event descriptive text for humidity
-*      -add hours and minutes to change log dates
-*  v202110020000
-*      -change batteryLevel attribute back to battery
-*  v202110010000
-*      -add header
-*      -add battery status
-*      -add battery last updated
-*  v20210930
-*      -initial release w/ battery level and tamper
+*  v202110031511
+*      -initial release
 *
 *************/
 
 metadata {
-    definition (name: "Virtual Omni Sensor Plus",
+    definition (name: "Virtual Fibaro ZW5",
                 namespace: "whodunitGorilla",
                 author: "Terrel Allen",
-                importUrl: "https://raw.githubusercontent.com/terrelsa13/HubitatPublic/master/examples/drivers/virtualOmniSensorPlus.groovy")
+                importUrl: "https://raw.githubusercontent.com/terrelsa13/HubitatPublic/master/examples/drivers/virtualFibaroZW5.groovy")
     {
-        capability "Presence Sensor"
         capability "Acceleration Sensor"
-        capability "Carbon Dioxide Measurement"
-        capability "Carbon Monoxide Detector"
-        capability "Contact Sensor"
         capability "Illuminance Measurement"
         capability "Motion Sensor"
-        capability "Relative Humidity Measurement"
-        capability "Smoke Detector"
         capability "Temperature Measurement"
-        capability "Water Sensor"
-        capability "Energy Meter"
-        capability "Power Meter"
         capability "Battery"
         capability "Tamper Alert"
         capability "Three Axis"
-        command "arrived"
-        command "departed"
         command "accelerationActive"
         command "accelerationInactive"
         command "motionActive"
         command "motionInactive"
-        command "open"
-        command "close"
-        command "CODetected"
-        command "COClear"
-        command "smokeDetected"
-        command "smokeClear"
-        command "setCarbonDioxide", ["Number"]
         command "setIlluminance", ["Number"]
-        command "setRelativeHumidity", ["Number"]
         command "setTemperature", ["Number"]
-        command "wet"
-        command "dry"
         command "setVariable", ["String"]
-        command "setEnergy", ["Number"]
-        command "setPower", ["Number"]
         command "setBattery", ["Number"]
         command "batteryStatusIdle"
         command "batteryStatusDischarging"
@@ -110,17 +74,10 @@ def logsOff(){
 def installed() {
     log.warn "installed..."
     initialized()
-    arrived()
     accelerationInactive()
-    COClear()
-    close()
     setIlluminance(50)
-    setCarbonDioxide(350)
-    setRelativeHumidity(35)
     motionInactive()
-    smokeClear()
     setTemperature(70)
-    dry()
     setBatteryStatus("unknown")
     tamperClear()
     runIn(1800,logsOff)
@@ -141,18 +98,6 @@ def updated() {
 def parse(String description) {
 }
 
-def arrived() {
-    def descriptionText = "${device.displayName} has arrived"
-    if (txtEnable) log.info "${descriptionText}"
-    sendEvent(name: "presence", value: "present",descriptionText: descriptionText)
-}
-
-def departed() {
-    def descriptionText = "${device.displayName} has departed"
-    if (txtEnable) log.info "${descriptionText}"
-    sendEvent(name: "presence", value: "not present",descriptionText: descriptionText)
-}
-
 def accelerationActive() {
     def descriptionText = "${device.displayName} acceleration is active"
     if (txtEnable) log.info "${descriptionText}"
@@ -171,46 +116,10 @@ def CODetected() {
     sendEvent(name: "carbonMonoxide", value: "detected", descriptionText: descriptionText)
 }
 
-def COClear() {
-    def descriptionText = "${device.displayName} CO clear"
-    if (txtEnable) log.info "${descriptionText}"
-    sendEvent(name: "carbonMonoxide", value: "clear", descriptionText: descriptionText)
-}
-
-def open() {
-    def descriptionText = "${device.displayName} is open"
-    if (txtEnable) log.info "${descriptionText}"
-    sendEvent(name: "contact", value: "open", descriptionText: descriptionText)
-}
-
-def close() {
-    def descriptionText = "${device.displayName} is closed"
-    if (txtEnable) log.info "${descriptionText}"
-    sendEvent(name: "contact", value: "closed", descriptionText: descriptionText)
-}
-
 def setIlluminance(lux) {
     def descriptionText = "${device.displayName} is ${lux} lux"
     if (txtEnable) log.info "${descriptionText}"
     sendEvent(name: "illuminance", value: lux, descriptionText: descriptionText, unit: "Lux")
-}
-
-def setCarbonDioxide(CO2) {
-    def descriptionText = "${device.displayName}  Carbon Dioxide is ${CO2} ppm"
-    if (txtEnable) log.info "${descriptionText}"
-    sendEvent(name: "carbonDioxide", value: CO2, descriptionText: descriptionText, unit: "ppm")
-}
-
-def setRelativeHumidity(humid) {
-    def descriptionText = "${device.displayName} humidity is ${humid}%"
-    if (txtEnable) log.info "${descriptionText}"
-    sendEvent(name: "humidity", value: humid, descriptionText: descriptionText, unit: "RH%")
-}
-
-def smokeDetected() {
-    def descriptionText = "${device.displayName} smoke detected"
-    if (txtEnable) log.info "${descriptionText}"
-    sendEvent(name: "smoke", value: "detected", descriptionText: descriptionText)
 }
 
 def motionActive() {
@@ -225,12 +134,6 @@ def motionInactive() {
     sendEvent(name: "motion", value: "inactive", descriptionText: descriptionText)
 }
 
-def smokeClear() {
-    def descriptionText = "${device.displayName} smoke clear"
-    if (txtEnable) log.info "${descriptionText}"
-    sendEvent(name: "smoke", value: "clear", descriptionText: descriptionText)
-}
-
 def setTemperature(temp) {
     def unit = "°${location.temperatureScale}"
     def descriptionText = "${device.displayName} temperature is ${temp}${unit}"
@@ -238,34 +141,10 @@ def setTemperature(temp) {
     sendEvent(name: "temperature", value: temp, descriptionText: descriptionText, unit: unit)
 }
 
-def wet() {
-    def descriptionText = "${device.displayName} water wet"
-    if (txtEnable) log.info "${descriptionText}"
-    sendEvent(name: "water", value: "wet", descriptionText: descriptionText)
-}
-
-def dry() {
-    def descriptionText = "${device.displayName} water dry"
-    if (txtEnable) log.info "${descriptionText}"
-    sendEvent(name: "water", value: "dry", descriptionText: descriptionText)
-}
-
 def setVariable(str) {
     def descriptionText = "${device.displayName} variable is ${str}"
     if (txtEnable) log.info "${descriptionText}"
     sendEvent(name: "variable", value: str, descriptionText: descriptionText)
-}
-
-def setEnergy(energy) {
-    def descriptionText = "${device.displayName} is ${energy} energy"
-    if (txtEnable) log.info "${descriptionText}"
-    sendEvent(name: "energy", value: energy, descriptionText: descriptionText)
-}
-
-def setPower(power) {
-    def descriptionText = "${device.displayName} is ${power} power"
-    if (txtEnable) log.info "${descriptionText}"
-    sendEvent(name: "power", value: power, descriptionText: descriptionText)
 }
 
 String getBatteryStatus() {
@@ -381,22 +260,20 @@ def threeAxis(x,y,z) {
 
 //setThreeAxis(string) input format: [x:0,y:0,z:0]
 def setThreeAxis(xyz) {
-    if (xyz != null) {
-        //remove open bracket
-        removeBrackets = xyz.minus("[")
-        //remove close bracket
-        removeBrackets = removeBrackets.minus("]")
-        //split string into an array at ","
-        threeAxisArray = removeBrackets.split(",")
-        //split strings into arrys at ":"
-        xPair = threeAxisArray[0].split(":")
-        yPair = threeAxisArray[1].split(":")
-        zPair = threeAxisArray[2].split(":")
-        //to integers
-        int x = xPair[1] as Integer
-        int y = yPair[1] as Integer
-        int z = zPair[1] as Integer
-        //command
-        threeAxis(x,y,z)
-    }
+    //remove open bracket
+    removeBrackets = xyz.minus("[")
+    //remove close bracket
+    removeBrackets = removeBrackets.minus("]")
+    //split string into an array at ","
+    threeAxisArray = removeBrackets.split(",")
+    //split strings into arrys at ":"
+    xPair = threeAxisArray[0].split(":")
+    yPair = threeAxisArray[1].split(":")
+    zPair = threeAxisArray[2].split(":")
+    //to integers
+    int x = xPair[1] as Integer
+    int y = yPair[1] as Integer
+    int z = zPair[1] as Integer
+    //command
+    threeAxis(x,y,z)
 }
