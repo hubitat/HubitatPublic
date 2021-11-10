@@ -2,21 +2,7 @@
     Ring Keypad Gen 2
 
     Copyright 2020 -> 2021 Hubitat Inc.  All Rights Reserved
-    2021-07-26 2.2.8 bcopeland
-        -lockCodes capability
-    2021-05-10 2.2.8 maxwell
-        -remove custom commands
-    2021-02-23 2.2.6 bcopeland
-        -add command debug log
-    2021-01-07 2.2.5 bcopeland
-        -battery report update
-    2020-12-29 2.2.5 bcopeland
-        - Rework for misunderstanding of HSM workings
-        - update security bits
-    2020-07-14 2.2.2 bcopeland
-        - bug fix in updated()
-	2020-07-01 2.2.2 bcopeland
-		-initial pub
+
 
 */
 
