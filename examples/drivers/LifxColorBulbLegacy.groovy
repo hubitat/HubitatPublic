@@ -147,13 +147,13 @@ void flash() {
 void flashOn() {
     if (!state.flashing) return
     runInMillis((flashRate ?: 750).toInteger(), flashOff)
-    sendToDevice(new hubitat.lifx.commands.SetLightPower(level: 65535, duration: 0).format())
+    sendToDevice(new hubitat.lifx.commands.SetPower(level: 65535).format())
 }
 
 void flashOff() {
     if (!state.flashing) return
     runInMillis((flashRate ?: 750).toInteger(), flashOn)
-    sendToDevice(new hubitat.lifx.commands.SetLightPower(level: 0, duration: 0).format())
+    sendToDevice(new hubitat.lifx.commands.SetPower(level: 0).format())
 }
 
 void on() {
