@@ -189,7 +189,7 @@ void setLevel(value, duration=null) {
     }
     cmds.add(new hubitat.lifx.commands.SetColor(hue: Math.round(targetVals.hue * 655.35), saturation: Math.round(targetVals.saturation * 655.35), brightness: Math.round(targetVals.level * 655.35), kelvin: targetVals.colorTemperature, duration: tt).format())
     if (device.currentValue("switch") != "on") {
-        cmds.add(new hubitat.lifx.commands.SetLightPower(level: 65535, duration: tt).format())
+        cmds.add(new hubitat.lifx.commands.SetPower(level: 65535).format())
     }
     sendToDevice(cmds)
     runIn((Math.round(tt/1000) + 1), privateRefresh)
@@ -207,7 +207,7 @@ void setHue(value) {
     if (colorTransition) tt = colorTransition.toInteger() * 1000
     cmds.add(new hubitat.lifx.commands.SetColor(hue: Math.round(targetVals.hue * 655.35), saturation: Math.round(targetVals.saturation * 655.35), brightness: Math.round(targetVals.level * 655.35), kelvin: targetVals.colorTemperature, duration: tt).format())
     if (!colorStaging && (device.currentValue("switch") != "on")) {
-        cmds.add(new hubitat.lifx.commands.SetLightPower(level: 65535, duration: tt).format())
+        cmds.add(new hubitat.lifx.commands.SetPower(level: 65535).format())
     }
     sendToDevice(cmds)
     runIn((Math.round(tt/1000) + 1), privateRefresh)
@@ -224,7 +224,7 @@ void setSaturation(value) {
     if (colorTransition) tt = colorTransition.toInteger() * 1000
     cmds.add(new hubitat.lifx.commands.SetColor(hue: Math.round(targetVals.hue * 655.35), saturation: Math.round(targetVals.saturation * 655.35), brightness: Math.round(targetVals.level * 655.35), kelvin: targetVals.colorTemperature, duration: tt).format())
     if (!colorStaging && (device.currentValue("switch") != "on")) {
-        cmds.add(new hubitat.lifx.commands.SetLightPower(level: 65535, duration: tt).format())
+        cmds.add(new hubitat.lifx.commands.SetPower(level: 65535).format())
     }
     sendToDevice(cmds)
     runIn((Math.round(tt/1000) + 1), privateRefresh)
@@ -245,7 +245,7 @@ void setColor(value) {
     setTargetColorVals(targetVals)
     cmds.add(new hubitat.lifx.commands.SetColor(hue: Math.round(targetVals.hue * 655.35), saturation: Math.round(targetVals.saturation * 655.35), brightness: Math.round(targetVals.level * 655.35), kelvin: targetVals.colorTemperature, duration: tt).format())
     if (!colorStaging && (device.currentValue("switch") != "on")) {
-        cmds.add(new hubitat.lifx.commands.SetLightPower(level: 65535, duration: tt).format())
+        cmds.add(new hubitat.lifx.commands.SetPower(level: 65535).format())
     }
     sendToDevice(cmds)
     runIn((Math.round(tt/1000) + 1), privateRefresh)
@@ -269,7 +269,7 @@ void setColorTemperature(Number temp, Number level=null, Number transitionTime=n
     setTargetColorVals(targetVals)
     cmds.add(new hubitat.lifx.commands.SetColor(hue: Math.round(targetVals.hue * 655.35), saturation: Math.round(targetVals.saturation * 655.35), brightness: Math.round(targetVals.level * 655.35), kelvin: targetVals.colorTemperature, duration: tt).format())
     if (!colorStaging && (device.currentValue("switch") != "on")) {
-        cmds.add(new hubitat.lifx.commands.SetLightPower(level: 65535, duration: tt).format())
+        cmds.add(new hubitat.lifx.commands.SetPower(level: 65535).format())
     }
     sendToDevice(cmds)
     runIn((Math.round(tt/1000) + 1), privateRefresh)
