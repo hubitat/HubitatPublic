@@ -123,13 +123,17 @@ void refresh() {
     List<String> cmds = []
     cmds.add(new hubitat.lifx.commands.GetColor().format())
     cmds.add(new hubitat.lifx.commands.GetWifiInfo().format())
+    cmds.add(new hubitat.lifx.commands.GetPower().format())
     sendToDevice(cmds)
 }
 
 void privateRefresh() {
     // rapid commands have stopped - refresh target vals from new state
     targetColor.remove("${device.id}")
-    sendToDevice(new hubitat.lifx.commands.GetColor().format())
+    List<String> cmds = []
+    cmds.add(new hubitat.lifx.commands.GetColor().format())
+    cmds.add(new hubitat.lifx.commands.GetPower().format())
+    sendToDevice(cmds)
 }
 
 void poll() {
