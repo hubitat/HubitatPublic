@@ -15,6 +15,8 @@ preferences {
 Map mainPage() {
 	dynamicPage(name: "mainPage", title: "All Off", uninstall: true, install: true) {
 		section {
+			input "appName", "text", title: "Name this instance of All Off", submitOnChange: true
+			if(appName) app.updateLabel(appName)
 			input "switches", "capability.switch", title: "Switches to turn off", multiple: true
 			paragraph "For the trigger use a Virtual Switch with auto-off enabled, turning it on fires the main off command for the switches above"
 			input "trigger", "capability.switch", title: "Trigger switch"
