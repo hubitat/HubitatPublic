@@ -11,12 +11,14 @@ preferences {
 	page(name: "mainPage")
 }
 
-def mainPage() {
+Map mainPage() {
 	dynamicPage(name: "mainPage", title: " ", install: true, uninstall: true) {
 		section {
 			input "thisName", "text", title: "Name this Switch-Lock", submitOnChange: true
 			if(thisName) app.updateLabel("$thisName")
 			input "lock", "capability.lock", title: "Select Lock", submitOnChange: true, required: true
+			input "lockOnly", "bool", title: "Lock only?", submitOnChange: true, width: 3
+			input "unlockOnly", "bool", title: "Unock only?", submitOnChange: true, width: 3
 		}
 	}
 }
@@ -30,13 +32,19 @@ def updated() {
 	initialize()
 }
 
-def initialize() {
+void initialize() {
 	def switchDev = getChildDevice("SwitchLock_${app.id}")
-	if(!switchDev) switchDev = addChildDevice("hubitat", "Virtual Switch", "SwitchLock_${app.id}", null, [label: lock.label, name: lock.name])
+	if(!switchDev) switchDev = addChildDevice("hubitat", "Room Lights Activator Switch", "SwitchLock_${app.id}", null, [label: lock.label, name: lock.name])
 	subscribe(switchDev, "switch", handler)
 }
 
-def handler(evt) {
-	if(evt.value == "on") lock.lock() else lock.unlock()
-	log.info "$lock ${evt.value == "on" ? "locked" : "unlocked"}"
+void handler(evt) {
+	def switchDev = getChildDevice("SwitchLock_${app.id}")
+	if(evt.value == "on") if(!unlockOnly) {lock.lock(); log.info "$lock locked"}
+	else if(!lockOnly) {lock.unlock(); log.info "$lock unlocked"}
+	if(lockOnly) switchDev.soff()
+	if(unlockOnly) switchDev.son()
 }
+
+void on() {}
+void off() {}
