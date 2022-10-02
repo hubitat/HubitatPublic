@@ -90,7 +90,7 @@ String displayTable() {
 		str += "<tr style='color:black'><td style='border-right:2px solid black'>$devLink</td>" +
 			"<td style='color:${dev.currentSwitch == "on" ? "green" : "red"}'>$time</td>" +
 			"<td title='Reset Total for $dev' style='padding:0px 0px'>$reset</td>" +
-			"<td>$var</td></tr>"
+			"<td title='${thisVar ? "Deselect $thisVar" : "Select String Hub Variable"}'>$var</td></tr>"
 	}
 	str += "</table></div>"
 	str
