@@ -80,7 +80,8 @@ String buttonLink(String btnName, String linkText, color = "#1A77C9", font = "15
 
 void appButtonHandler(btn) {
 	if(btn == "reset") state.lights.each{k, v ->
-		state.lights[k].start = 0
+		def dev = lights.find{"$it.id" == k}
+		state.lights[k].start = dev.currentSwitch == "on" ? now() : 0
 		state.lights[k].total = 0
 	} else if(btn == "refresh") state.lights.each{k, v ->
 		def dev = lights.find{"$it.id" == k}
