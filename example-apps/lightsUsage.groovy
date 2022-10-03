@@ -27,7 +27,7 @@ def mainPage() {
 			input "lights", "capability.switch", title: "Select Lights to Measure Usage", multiple: true, submitOnChange: true, width: 4
 			lights.each {dev ->
 				if(!state.lights["$dev.id"]) {
-					state.lights["$dev.id"] = [start: dev.currentSwitch == "on" ? now() : 0, total: 0, var: ""]
+					state.lights["$dev.id"] = [start: dev.currentSwitch == "on" ? now() : 0, total: 0, var: "", time: ""]
 					state.lightsList += dev.id
 				}
 			}
@@ -65,6 +65,7 @@ String displayTable() {
 	if(state.reset) {
 		def dev = lights.find{"$it.id" == state.reset}
 		state.lights[state.reset].start = dev.currentSwitch == "on" ? now() : 0
+		state.lights[state.reset].time = new Date().format("MM-dd-yyyy ${location.timeFormat == "12" ? "h:mm:ss a" : "HH:mm:ss"}")
 		state.lights[state.reset].total = 0
 		state.remove("reset")
 	}
@@ -74,6 +75,7 @@ String displayTable() {
 		"<thead><tr style='border-bottom:2px solid black'><th style='border-right:2px solid black'>Light</th>" +
 		"<th>Total On Time</th>" +
 		"<th>Reset</th>" +
+		"<th>Time Stamp</th>" +
 		"<th>Variable</th></tr></thead>"
 	lights.sort{it.displayName.toLowerCase()}.each {dev ->
 		int total = state.lights["$dev.id"].total / 1000
@@ -90,6 +92,7 @@ String displayTable() {
 		str += "<tr style='color:black'><td style='border-right:2px solid black'>$devLink</td>" +
 			"<td style='color:${dev.currentSwitch == "on" ? "green" : "red"}'>$time</td>" +
 			"<td title='Reset Total for $dev' style='padding:0px 0px'>$reset</td>" +
+			"<td title='Time of last Reset for $dev'>${state.lights["$dev.id"].time ?: ""}</td>" +
 			"<td title='${thisVar ? "Deselect $thisVar" : "Select String Hub Variable"}'>$var</td></tr>"
 	}
 	str += "</table></div>"
@@ -104,6 +107,7 @@ void appButtonHandler(btn) {
 	if(btn == "reset") state.lights.each{k, v ->
 		def dev = lights.find{"$it.id" == k}
 		state.lights[k].start = dev.currentSwitch == "on" ? now() : 0
+		state.lights[k].time = new Date().format("MM-dd-yyyy ${location.timeFormat == "12" ? "h:mm:ss a" : "HH:mm:ss"}")
 		state.lights[k].total = 0
 	} else if(btn == "refresh") state.lights.each{k, v ->
 		def dev = lights.find{"$it.id" == k}
