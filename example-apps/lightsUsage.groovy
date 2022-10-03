@@ -31,6 +31,8 @@ def mainPage() {
 					state.lightsList += dev.id
 				}
 			}
+			input "resetVar", "enum", title: "Select Boolean Variable to Reset Timers", submitOnChange: true, width: 4, style: 'margin-left:10px',
+				options: getAllGlobalVars().findAll{it.value.type == "boolean"}.keySet().collect().sort{it.capitalize()}
 			if(lights) {
 				if(lights.id.sort() != state.lightsList.sort()) { //something was removed
 					state.lightsList = lights.id
@@ -104,12 +106,8 @@ String buttonLink(String btnName, String linkText, color = "#1A77C9", font = "15
 }
 
 void appButtonHandler(btn) {
-	if(btn == "reset") state.lights.each{k, v ->
-		def dev = lights.find{"$it.id" == k}
-		state.lights[k].start = dev.currentSwitch == "on" ? now() : 0
-		state.lights[k].time = new Date().format("MM-dd-yyyy ${location.timeFormat == "12" ? "h:mm:ss a" : "HH:mm:ss"}")
-		state.lights[k].total = 0
-	} else if(btn == "refresh") state.lights.each{k, v ->
+	if(btn == "reset") resetTimers()
+	else if(btn == "refresh") state.lights.each{k, v ->
 		def dev = lights.find{"$it.id" == k}
 		if(dev.currentSwitch == "on") {
 			state.lights[k].total += now() - state.lights[k].start
@@ -131,6 +129,10 @@ def installed() {
 void initialize() {
 	subscribe(lights, "switch.on", onHandler)
 	subscribe(lights, "switch.off", offHandler)
+	if(resetVar) {
+		subscribe(location, "variable:${resetVar}.true", resetTimers)
+		setGlobalVar(resetVar, false)
+	}
 }
 
 void onHandler(evt) {
@@ -148,4 +150,14 @@ void offHandler(evt) {
 		int secs = total % 60
 		setGlobalVar(thisVar, "$hours:${mins < 10 ? "0" : ""}$mins:${secs < 10 ? "0" : ""}$secs")
 	}
+}
+
+void resetTimers(evt = null) {
+	state.lights.each{k, v ->
+		def dev = lights.find{"$it.id" == k}
+		state.lights[k].start = dev.currentSwitch == "on" ? now() : 0
+		state.lights[k].time = new Date().format("MM-dd-yyyy ${location.timeFormat == "12" ? "h:mm:ss a" : "HH:mm:ss"}")
+		state.lights[k].total = 0
+	}
+	if(resetVar) setGlobalVar(resetVar, false)
 }
