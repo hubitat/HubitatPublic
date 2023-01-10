@@ -1,7 +1,7 @@
 /*
 	Virtual Thermostat
 
-	Copyright 2016 -> 2021 Hubitat Inc.  All Rights Reserved
+	Copyright 2016 -> 2023 Hubitat Inc.  All Rights Reserved
 
 */
 
@@ -34,7 +34,7 @@ metadata {
 		input( name: "txtEnable", type:"bool", title: "Enable descriptionText logging", defaultValue: true)
 	}
 }
-
+import groovy.json.JsonOutput
 
 def installed() {
 	log.warn "installed..."
@@ -58,8 +58,8 @@ def initialize() {
 		state.lastRunningMode = "heat"
 		updateDataValue("lastRunningMode", "heat")
 		setThermostatOperatingState("idle")
-		setSupportedThermostatFanModes(["auto","circulate","on"])
-		setSupportedThermostatModes(["auto", "cool", "emergency heat", "heat", "off"])
+		setSupportedThermostatFanModes(JsonOutput.toJson(["auto","circulate","on"]))
+		setSupportedThermostatModes(JsonOutput.toJson(["auto", "cool", "emergency heat", "heat", "off"]))
 		off()
 		fanAuto()
 	}
