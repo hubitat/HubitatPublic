@@ -1,5 +1,5 @@
 /*************
-*  Virtual Philips Hue SML001
+*  Virtual Philips Hue SML001 SML002
 *  Copyright 2021 Terrel Allen All Rights Reserved
 *
 *  This program is free software: you can redistribute it and/or modify
@@ -20,19 +20,21 @@
 *  Modify at your own risk.
 *
 *  USAGE
-*  Virtual Philips Hue SML001 Driver
+*  Virtual Philips Hue SML001 And SML002 Driver
 *
 *  CHANGE LOG
+*  v202301171107
+*      -add SML002 outdoor motion sensor
 *  v202208271853
 *      -initial release
 *
 *************/
 
 metadata {
-    definition (name: "Virtual Philips Hue SML001",
+    definition (name: "Virtual Philips Hue SML001 SML002",
                 namespace: "whodunitGorilla",
                 author: "Terrel Allen",
-                importUrl: "https://raw.githubusercontent.com/terrelsa13/HubitatPublic/master/examples/drivers/virtualPhilipsHueSML001.groovy")
+                importUrl: "https://raw.githubusercontent.com/terrelsa13/HubitatPublic/master/examples/drivers/virtualPhilipsHueSML001_SML002.groovy")
     {
         capability "Illuminance Measurement"
         capability "Motion Sensor"
