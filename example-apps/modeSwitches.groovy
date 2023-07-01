@@ -21,7 +21,7 @@ preferences {
 
 def mainPage() {
 	if(!state.modeSwitch) state.modeSwitch = [:]
-	dynamicPage(name: "mainPage", title: "Mode Switch Table", uninstall: true, install: true) {
+	dynamicPage(name: "mainPage", title: "Mode Switches", uninstall: true, install: true) {
 		section {
 			input "lights", "capability.switch", title: "Select Switches to Control", multiple: true, submitOnChange: true, width: 4
 			if(lights) {
