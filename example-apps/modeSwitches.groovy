@@ -40,10 +40,10 @@ String displayTable() {
 	String str = "<script src='https://code.iconify.design/iconify-icon/1.0.0/iconify-icon.min.js'></script>"
 	str += "<style>.mdl-data-table tbody tr:hover{background-color:inherit} .tstat-col td,.tstat-col th { padding:8px 8px;text-align:center;font-size:12px} .tstat-col td {font-size:15px }" +
 		"</style><div style='overflow-x:auto'><table class='mdl-data-table tstat-col' style=';border:2px solid black'>" +
-		"<thead><tr style='border-bottom:2px solid black'><th style='border-right:2px solid black'>Switch</th>"
+		"<thead><tr style='border-bottom:2px solid black'><th style='border-right:2px solid black'>Modes</th>"
 	List modes = location.modes?.clone()
 	modes.sort{it.name}.each{str += "<th colspan='2'>${location.mode == it.name ? "<span style='color:BlueViolet'>$it.name</span" : "$it.name"}</th>"}
-	str += "</tr><tr style='border-bottom:2px solid black'><td style='border-right:2px solid black'> </td>"
+	str += "</tr><tr style='border-bottom:2px solid black'><td style='border-right:2px solid black'>Switches</td>"
 	modes.each{str += "<th>On</th><th>Off</th>"}
 	str += "</tr></thead>"
 	String X = "<i class='he-checkbox-checked'></i>"
