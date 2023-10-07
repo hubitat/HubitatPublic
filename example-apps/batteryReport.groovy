@@ -18,7 +18,7 @@ def mainPage() {
 		section {
 			input "devs", "capability.*", title: "Select devices", submitOnChange: true, multiple: true
 			input "notice", "capability.notification", title: "Select notification device", submitOnChange: true
-			input "check", "button", title: "Check Now"
+			input "check", "button", title: "Check Now", state: "check"
 			if(state.check) {
 				paragraph handler()
 				state.check = false
@@ -29,6 +29,7 @@ def mainPage() {
 
 def updated() {
 	unschedule()
+	unsubscribe()
 	initialize()
 }
 
@@ -37,14 +38,10 @@ def installed() {
 }
 
 void initialize() {
-	schedule("0 0 9 ? * * *", handler)		// 9:00 AM every day
+	schedule("0 30 9 ? * * *", handlerX)
 }
 
-def appButtonHandler(btn) {
-	state.check = true
-}
-
-String handler(evt = null) {
+String handler(note=false) {
 	String s = ""
 	def rightNow = new Date()
 	devs.each {
@@ -52,9 +49,14 @@ String handler(evt = null) {
 		if(lastTime) {
 			def minutes = ((rightNow.time - lastTime.time) / 60000).toInteger()
 			if(minutes < 0) minutes += 1440
-			if(minutes > 1440) s += "<a href='/device/edit/$it.deviceId' target='_blank'>$it.displayName, "
-		} else s += "$it.displayName, "
+			if(minutes > 1440) s += (note ? "" : "<a href='/device/edit/$it.deviceId' target='_blank'>") + "$it.displayName, "
+			
+		} else s += (note ? "" : "<a href='/device/edit/$it.deviceId' target='_blank'>") + "$it.displayName, " + (note ? "" : "</a>")
 	}
-	if(!evt) return s ? "${s[0..-3]} did not report" : "All devices reported"
-	else notice.deviceNotification(s ? "${s[0..-3]} did not report" : "All devices reported")
+	if(note) notice.deviceNotification(s ? "[H]${s[0..-3]} did not report" : "All devices reported")
+	else return s ? "${s[0..-3]} did not report" : "All devices reported"
+}
+
+void handlerX() {
+	handler(true)
 }
