@@ -1,16 +1,25 @@
 /*
  	Generic ZigBee RGBW Light
 
-    Copyright 2016 -> 2020 Hubitat Inc.  All Rights Reserved
-	2019-12-20 2.1.8 maxwell
-		-add Nue HGZB-18A
-		-add RGBGenie ZB-1025
+    Copyright 2018 -> 2021 Hubitat Inc.  All Rights Reserved
+    2021-05-27 2.2.8 maxwell
+	-multi param setColorTemp update
+	-fix div 0 error
+    2021-04-08 2.2.7 maxwell
+	-add OTA command
+    2021-02-23 2.2.6 maxwell
+        -add command logging
+    2020-02-13 2.1.9 maxwell
+        -add Sylvania Flex SL RGBW strip
+    2019-12-20 2.1.8 maxwell
+	-add Nue HGZB-18A
+	-add RGBGenie ZB-1025
     2019-11-14 2.1.7 maxwell
         -add GLEDOPTO Mini Zigbee RGB+CCT Controller
         -add Nue HGZB-07A
         -add Innr GU10 Colour bulb
-	2019-09-02 2.1.5 maxwell
-	    -add white as a color
+    2019-09-02 2.1.5 maxwell
+	-add white as a color
         -change bindings to advertised endpoint
     2019-05-28 2.1.1 maxwell
         -fp update
@@ -23,8 +32,8 @@
     2018-06-04 maxwell
         -updates to support changeLevel
         -add capability color mode
-	2018-04-09 maxwell
-		-add transition and color staging options
+    2018-04-09 maxwell
+	-add transition and color staging options
     2018-03-24 maxwell
         -patch NPE on config log settings
 */
@@ -42,25 +51,7 @@ metadata {
         capability "Light"
         capability "ColorMode"
 
-        fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0008,0300,0B04,FC0F", outClusters: "0019", manufacturer: "OSRAM", model: "LIGHTIFY Flex RGBW", deviceJoinName: "SYLVANIA Smart Flex RGBW"
-        fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0008,0300,0B04,FC0F", outClusters: "0019", manufacturer: "OSRAM", model: "Flex RGBW", deviceJoinName: "OSRAM LIGHTIFY Flex RGBW"
-        fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0008,0300,FC0F", outClusters: "0019", manufacturer: "OSRAM", model: "LIGHTIFY A19 RGBW", deviceJoinName: "SYLVANIA Smart A19 RGBW"
-        fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0008,0300,0B04,FC0F", outClusters: "0019", manufacturer: "OSRAM", model: "LIGHTIFY BR RGBW", deviceJoinName: "SYLVANIA Smart BR30 RGBW"
-        fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0008,0300,0B04,FC0F", outClusters: "0019", manufacturer: "OSRAM", model: "LIGHTIFY RT RGBW", deviceJoinName: "SYLVANIA Smart RT5/6 RGBW"
-        fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0008,0300,0B04,FC0F", outClusters: "0019", manufacturer: "OSRAM", model: "LIGHTIFY FLEX OUTDOOR RGBW", deviceJoinName: "SYLVANIA Smart Outdoor RGBW Flex"
-        fingerprint profileId: "C05E", inClusters: "0000,0003,0004,0005,0006,0008,0300,1000", outClusters: "0019", manufacturer: "Philips", model: "LCT001", deviceJoinName: "Philips Hue Lux Bulb"
-        fingerprint profileId: "C05E", inClusters: "0000,0003,0004,0005,0006,0008,0300,1000,FC01", outClusters: "0019", manufacturer: "Philips", model: "LCT001", deviceJoinName: "Philips Hue Lux Bulb"
-        fingerprint profileId: "C05E", inClusters: "1000,0000,0003,0004,0005,0006,0008,0300,FC0F", outClusters: "0019", manufacturer: "OSRAM", model: "CLA60 RGBW OSRAM", deviceJoinName: "OSRAM Classic E27 Multicolor"
-        fingerprint profileId: "C05E", inClusters: "0000,0003,0004,0005,0006,0008,0300,1000", outClusters: "0019", manufacturer: "Philips", model: "LST002", deviceJoinName: "Philips Hue White and Color Ambiance LightStrip"
-        fingerprint profileId: "C05E", inClusters: "0000,0003,0004,0005,0006,0008,1000,0300", outClusters: "0019", manufacturer: "Philips", model: "LST002", deviceJoinName: "Philips Hue White and Color Ambiance LightStrip"
-        fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0008,0300,0B05,FC01", outClusters: "0019", manufacturer: "LEDVANCE", model: "BR30 RGBW", deviceJoinName: "SYLVANIA Smart + RGBW"
-        fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0008,0300,0B05,FC03", outClusters: "0019", manufacturer: "sengled", model: "E1G-G8E", deviceJoinName: "Sengled RGBW LED Strip"
-        fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0008,0300,0B05,FC01", outClusters: "0019", manufacturer: "LEDVANCE", model: "A19 RGBW", deviceJoinName: "SYLVANIA Smart + RGBW"
-        fingerprint profileId:"C05E", endpointId:"0B", inClusters:"0000,0003,0004,0005,0006,0008,0300", model:"NUET56-DL27LX1.1", manufacturer:"3A Smart Home DE", deviceJoinName: "Nue HGZB-07A"
-        fingerprint profileId:"C05E", endpointId:"0B", inClusters:"0000,0003,0004,0005,0006,0008,0300", model:"GL-MC-001", manufacturer:"GLEDOPTO", deviceJoinName: "GLEDOPTO Mini Zigbee RGB+CCT Controller"
-        fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0008,0300,0B05,1000,FC82", outClusters: "0019", manufacturer: "innr", model: "RS 230 C", deviceJoinName: "Innr GU10 Colour bulb"
-        fingerprint profileId:"0104", endpointId:"01", inClusters:"0000,0004,0003,0006,0008,0005,0300,1000,0019", outClusters:"0019", model:"LXT56-LS27LX1.4", manufacturer:"3A Smart Home DE", deviceJoinName: "Nue HGZB-18A strip controller"
-        fingerprint profileId:"C05E", endpointId:"01", inClusters:"0000,0003,0004,0005,0006,0008,0300,0B05,1000", outClusters:"0019,1000", model:"RGBgenie   ZB-1025", manufacturer:"RGBgenie", deviceJoinName: "RGBGenie ZB-1025 strip controller"
+        command "updateFirmware"
     }
 
     preferences {
@@ -70,6 +61,11 @@ metadata {
         input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: true
         input name: "txtEnable", type: "bool", title: "Enable descriptionText logging", defaultValue: true
     }
+}
+
+List<String> updateFirmware() {
+    if (getDataValue("manufacturer") == "Philips") return zigbee.updateFirmware(manufacturer:0x100B)
+    else return zigbee.updateFirmware()
 }
 
 def logsOff(){
@@ -105,7 +101,7 @@ def parse(String description) {
                     descriptionText = "${device.displayName} was turned ${value}"
                 }
             } else {
-                log.debug "0x0006:${descMap.attrId}:${rawValue}"
+                if (logEnable) log.debug "0x0006:${descMap.attrId}:${rawValue}"
             }
             break
         case 8: //level
@@ -119,7 +115,7 @@ def parse(String description) {
                     descriptionText = "${device.displayName} was set to ${value}${unit}"
                 }
             } else {
-                log.debug "0x0008:${descMap.attrId}:${rawValue}"
+                if (logEnable) log.debug "0x0008:${descMap.attrId}:${rawValue}"
             }
             break
         case 0x300: //color
@@ -154,6 +150,7 @@ def parse(String description) {
                     state.lastSaturation = descMap.value
                     break
                 case 7:	//ct
+                    if (rawValue == 0) return
                     value = (1000000 / rawValue).toInteger()
                     name = "colorTemperature"
                     unit = "°K"
@@ -185,12 +182,14 @@ def parse(String description) {
 }
 
 def startLevelChange(direction){
+    if (logEnable) log.debug "startLevelChange(${direction})"
     def upDown = direction == "down" ? 1 : 0
     def unitsPerSecond = 100
     return "he cmd 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0008 1 { 0x${intTo8bitUnsignedHex(upDown)} 0x${intTo16bitUnsignedHex(unitsPerSecond)} }"
 }
 
 def stopLevelChange(){
+    if (logEnable) log.debug "stopLevelChange()"
     return [
             "he cmd 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0008 3 {}}","delay 200",
             "he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0008 0 {}"
@@ -198,6 +197,7 @@ def stopLevelChange(){
 }
 
 def on() {
+    if (logEnable) log.debug "on()"
     def cmd = [
             "he cmd 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0006 1 {}",
             "delay 1000",
@@ -207,6 +207,7 @@ def on() {
 }
 
 def off() {
+    if (logEnable) log.debug "off()"
     def cmd = [
             "he cmd 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0006 0 {}",
             "delay 1000",
@@ -216,7 +217,7 @@ def off() {
 }
 
 def refresh() {
-    if (logEnable) log.debug "refresh"
+    if (logEnable) log.debug "refresh()"
     return  [
             "he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0006 0 {}","delay 200",  //light state
             "he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0008 0 {}","delay 200",  //light level
@@ -307,10 +308,12 @@ def setGenericName(hue){
 }
 
 def setLevel(value) {
+    if (logEnable) log.debug "setLevel(${value})"
     setLevel(value,(transitionTime?.toBigDecimal() ?: 1000) / 1000)
 }
 
 def setLevel(value,rate) {
+    if (logEnable) log.debug "setLevel(${value}, ${rate})"
     rate = rate.toBigDecimal()
     def scaledRate = (rate * 10).toInteger()
     def cmd = []
@@ -333,6 +336,7 @@ def setLevel(value,rate) {
 }
 
 def setColor(value){
+    if (logEnable) log.debug "setColor(${value})"
     if (value.hue == null || value.saturation == null) return
 
     def rate = value?.rate ? value.rate * 1000 : (transitionTime?.toInteger() ?: 1000)
@@ -404,6 +408,7 @@ def setColor(value){
 }
 
 def setHue(value) {
+    if (logEnable) log.debug "setHue(${value})"
     def hexHue
     def rate = transitionTime?.toInteger() ?: 1000
     def isOn = device.currentValue("switch") == "on"
@@ -442,6 +447,7 @@ def setHue(value) {
 }
 
 def setSaturation(value) {
+    if (logEnable) log.debug "setSaturation(${value})"
     //saturation is 0.. 100, value is 0..254 Saturation = CurrentSaturation/254
     def rate = transitionTime?.toInteger() ?: 1000
     def cmd = []
@@ -474,36 +480,36 @@ def setSaturation(value) {
     return cmd
 }
 
-def setColorTemperature(rawValue) {
-    def rate = transitionTime?.toInteger() ?: 1000
-    def value = intTo16bitUnsignedHex((1000000/rawValue).toInteger())
-    def cmd = []
-    def isOn = device.currentValue("switch") == "on"
-
-    if (isOn){
-        cmd = [
-                "he cmd 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0300 0x000A {${value} ${intTo16bitUnsignedHex(rate / 100)}}",
-                "delay ${rate + 400}",
-                "he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0300 0x0007 {}", "delay 200",
-                "he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0300 0x0008 {}"
-        ]
-    } else if (colorStaging){
-        cmd = [
-                "he cmd 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0300 0x000A {${value} 0x0100}", "delay 200",
-                "he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0300 0x0007 {}", "delay 200",
-                "he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0300 0x0008 {}"
-        ]
+List<String> setColorTemperature(colorTemperature, level = null, tt = null) {
+    if (logEnable) log.debug "setColorTemperature(${colorTemperature}, ${level}, ${tt})"
+    if (colorTemperature == null) return
+    state.lastCT = intToHexStr((1000000/colorTemperature.toInteger()).toInteger())
+    String hexValue = zigbee.swapOctets(intToHexStr((1000000/colorTemperature.toInteger()).toInteger() ,2))
+    Boolean isOff = device.currentValue("switch") == "off"
+    List<String> cmds = []
+    BigDecimal ttSeconds = ((tt == null) ? (transitionTime == null) ? 0 : transitionTime.toInteger() / 1000 : tt).toBigDecimal()
+    if (isOff) {
+        cmds.add("he cmd 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0300 0x0A { ${hexValue} 0000}")
+        if (!colorStaging) {
+            cmds.add("delay 300")
+            cmds.addAll(setLevel( level ?: device.currentValue("level") ?: 100, ttSeconds))
+        } else {
+            cmds.add("he cmd 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0300 0x0A { ${hexValue} 0x000}")
+            cmds.add("delay 300")
+            cmds.addAll(zigbee.readAttribute(0x0300,0x0007,[:],0))
+        }
     } else {
-        cmd = [
-                "he cmd 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0300 0x000A {${value} 0x0100}", "delay 200",
-                "he cmd 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0006 1 {}","delay 200",
-                "he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0006 0 {}","delay 200",
-                "he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0300 0x0007 {}", "delay 200",
-                "he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0300 0x0008 {}"
-        ]
+        if (level != null && level != device.currentValue("level")) {
+            cmds.addAll(setLevel(level, ttSeconds))
+            cmds.add("delay ${(ttSeconds + 1) * 1000}")
+            cmds.addAll(zigbee.readAttribute(0x0008, 0x0000, [:],300))
+        }
+        String hexTransition = zigbee.swapOctets(intToHexStr( (ttSeconds * 10).toInteger() ,2)) //this is in deca seconds
+        cmds.add("he cmd 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0300 0x0A { ${hexValue} ${hexTransition}}")
+        cmds.add("delay ${(ttSeconds + 1) * 1000}")
+        cmds.addAll(zigbee.readAttribute(0x0300,0x0007,[:],0))
     }
-    state.lastCT = value
-    return cmd
+    return cmds
 }
 
 def installed() {
