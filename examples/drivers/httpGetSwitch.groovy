@@ -13,11 +13,11 @@ metadata {
 }
 
 preferences {
-    section("URIs") {
+
         input "onURI", "text", title: "On URI", required: false
         input "offURI", "text", title: "Off URI", required: false
         input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: true
-    }
+
 }
 
 def logsOff() {
