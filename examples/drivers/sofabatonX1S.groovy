@@ -1,11 +1,11 @@
 /*
-    Sofabatton X1S
+    Sofabaton X1S
 	Copyright 2025 Hubitat Inc. All Rights Reserved
 
 	2025-03-22 maxwell
 		-initial publication in github repo
 
-	*simple example driver for Sofabatton X1S remote, allows mapping X1S remote buttons to Hubitat button events
+	*simple example driver for Sofabaton X1S remote, allows mapping X1S remote buttons to Hubitat button events
 
 	*driver configuration
 	-set a static DHCP reservation for the XS1 hub
@@ -22,7 +22,7 @@
 */
 
 metadata {
-    definition (name: "Sofabatton X1S", namespace: "hubitat", author: "Mike Maxwell") {
+    definition (name: "Sofabaton X1S", namespace: "hubitat", author: "Mike Maxwell") {
         capability "Actuator"
         capability "PushableButton"
         preferences {
