@@ -235,21 +235,21 @@ private updateSetpoints(sp = null, hsp = null, csp = null, operatingState = null
 		name = "heatingSetpoint"
 		descriptionText = "${device.displayName} ${name} was set to ${value}${unit}"
 		if (txtEnable) log.info descriptionText
-		sendEvent(name: name, value: value, descriptionText: descriptionText, unit: unit, stateChange: true)
+		sendEvent(name: name, value: value, descriptionText: descriptionText, unit: unit, isStateChange: true)
 	}
 	if (cspChange) {
 		value = csp
 		name = "coolingSetpoint"
 		descriptionText = "${device.displayName} ${name} was set to ${value}${unit}"
 		if (txtEnable) log.info descriptionText
-		sendEvent(name: name, value: value, descriptionText: descriptionText, unit: unit, stateChange: true)
+		sendEvent(name: name, value: value, descriptionText: descriptionText, unit: unit, isStateChange: true)
 	}
 	if (spChange) {
 		value = sp
 		name = "thermostatSetpoint"
 		descriptionText = "${device.displayName} ${name} was set to ${value}${unit}"
 		if (txtEnable) log.info descriptionText
-		sendEvent(name: name, value: value, descriptionText: descriptionText, unit: unit, stateChange: true)
+		sendEvent(name: name, value: value, descriptionText: descriptionText, unit: unit, isStateChange: true)
 	}
 
 	state.lastRunningMode = newOS
